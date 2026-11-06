@@ -47,7 +47,7 @@ class TransactionService {
       amountPaid: 50000,
       changeAmount: 16000,
       userId: 'demo-admin-001',
-      createdAt: DateTime.now().subtract(const Duration(hours: 5)),
+      createdAt: DateTime.now().subtract(const Duration(hours: 4)),
       details: const [
         TransactionDetailModel(
           id: 'txd-3',
@@ -98,6 +98,84 @@ class TransactionService {
           price: 17500,
           quantity: 1,
           subtotal: 17500,
+        ),
+      ],
+    ),
+    TransactionModel(
+      id: 'tx-1004',
+      transactionCode: 'INV-20261103-042',
+      customerName: 'Rina Amelia',
+      subtotal: 66000,
+      total: 66000,
+      paymentMethod: 'QRIS',
+      amountPaid: 66000,
+      changeAmount: 0,
+      userId: 'demo-admin-001',
+      createdAt: DateTime.now().subtract(const Duration(days: 3, hours: 2)),
+      details: const [
+        TransactionDetailModel(
+          id: 'txd-7',
+          transactionId: 'tx-1004',
+          productId: 'prod-11',
+          productName: 'Croissant Mentega',
+          price: 19000,
+          quantity: 2,
+          subtotal: 38000,
+        ),
+        TransactionDetailModel(
+          id: 'txd-8',
+          transactionId: 'tx-1004',
+          productId: 'prod-5',
+          productName: 'Cokelat Panas',
+          price: 14000,
+          quantity: 2,
+          subtotal: 28000,
+        ),
+      ],
+    ),
+    TransactionModel(
+      id: 'tx-1005',
+      transactionCode: 'INV-20261025-019',
+      customerName: 'Katering Berkah Jaya',
+      subtotal: 144000,
+      total: 144000,
+      paymentMethod: 'Transfer',
+      amountPaid: 150000,
+      changeAmount: 6000,
+      userId: 'demo-admin-001',
+      createdAt: DateTime.now().subtract(const Duration(days: 12, hours: 4)),
+      details: const [
+        TransactionDetailModel(
+          id: 'txd-9',
+          transactionId: 'tx-1005',
+          productId: 'prod-9',
+          productName: 'Beras',
+          price: 72000,
+          quantity: 2,
+          subtotal: 144000,
+        ),
+      ],
+    ),
+    TransactionModel(
+      id: 'tx-1006',
+      transactionCode: 'INV-20260918-007',
+      customerName: 'Kafe Nusantara',
+      subtotal: 108000,
+      total: 108000,
+      paymentMethod: 'Cash',
+      amountPaid: 110000,
+      changeAmount: 2000,
+      userId: 'demo-admin-001',
+      createdAt: DateTime.now().subtract(const Duration(days: 45)),
+      details: const [
+        TransactionDetailModel(
+          id: 'txd-10',
+          transactionId: 'tx-1006',
+          productId: 'prod-1',
+          productName: 'Kopi Susu',
+          price: 18000,
+          quantity: 6,
+          subtotal: 108000,
         ),
       ],
     ),
@@ -159,6 +237,7 @@ class TransactionService {
             : customerName.trim(),
         'p_payment_method': paymentMethod,
         'p_amount_paid': amountPaid,
+        'p_change_amount': amountPaid - total,
         'p_items': payloadItems,
       });
 
@@ -201,10 +280,10 @@ class TransactionService {
           id: 'txd-${now.microsecondsSinceEpoch}-${details.length}',
           transactionId: txId,
           productId: currentProd.id,
-          productName:
-              cartItem.selectedVariant == 'Reguler' || cartItem.selectedVariant.isEmpty
-                  ? currentProd.name
-                  : '${currentProd.name} (${cartItem.selectedVariant})',
+          productName: cartItem.selectedVariant == 'Reguler' ||
+                  cartItem.selectedVariant.isEmpty
+              ? currentProd.name
+              : '${currentProd.name} (${cartItem.selectedVariant})',
           price: cartItem.unitPrice,
           quantity: cartItem.quantity,
           subtotal: cartItem.subtotal,
@@ -231,4 +310,3 @@ class TransactionService {
     return createdTx;
   }
 }
-

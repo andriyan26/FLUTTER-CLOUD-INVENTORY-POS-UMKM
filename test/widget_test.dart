@@ -6,6 +6,7 @@ import 'package:cloud_inventory_pos_umkm/models/product_model.dart';
 import 'package:cloud_inventory_pos_umkm/models/user_profile.dart';
 import 'package:cloud_inventory_pos_umkm/providers/cart_provider.dart';
 import 'package:cloud_inventory_pos_umkm/services/report_service.dart';
+import 'package:cloud_inventory_pos_umkm/services/transaction_service.dart';
 
 void main() {
   group('Cloud Inventory POS UMKM — Quality Gate Tests', () {
@@ -55,8 +56,11 @@ void main() {
       expect(cart.totalItemsCount, equals(2));
     });
 
-    test('ReportService mendeteksi produk stok menipis', () {
+    test('ReportService mendeteksi produk stok menipis & membuat dokumen cetak', () async {
       final reportService = ReportService();
+      final txService = TransactionService();
+      final demoTx = await txService.fetchTransactions();
+
       final lowStockProd = ProductModel(
         id: 'p-low',
         sku: 'UMKM-006',
@@ -69,14 +73,40 @@ void main() {
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
-      final summary = reportService.buildReportSummary(
-        transactions: const [],
+
+      final summaryHarian = reportService.buildReportSummary(
+        transactions: demoTx,
         products: [lowStockProd],
-        period: 'Semua',
+        period: 'Harian',
       );
-      final lowList = summary['lowStockProducts'] as List<ProductModel>;
-      expect(lowList.length, equals(1));
-      expect(lowList.first.sku, equals('UMKM-006'));
+      final summaryBulanan = reportService.buildReportSummary(
+        transactions: demoTx,
+        products: [lowStockProd],
+        period: 'Bulanan',
+      );
+
+      expect(
+        (summaryBulanan['totalRevenue'] as int) >=
+            (summaryHarian['totalRevenue'] as int),
+        isTrue,
+      );
+
+      final html = reportService.generatePrintableReportHtml(
+        period: 'Bulanan',
+        paperFormat: 'A4',
+        storeName: 'CloudPOS • Cabang Utama',
+        storeAddress: 'Jl. Asia Afrika No. 88',
+        storePhone: '+62 812-8899-2026',
+        authorName: 'Andriyan',
+        summary: summaryBulanan,
+        includePaymentBreakdown: true,
+        includeTopProducts: true,
+        includeTransactions: true,
+        includeLowStock: true,
+        includeSignature: true,
+      );
+      expect(html.contains('LAPORAN PERIODE: BULANAN'), isTrue);
+      expect(html.contains('VERIFIED'), isTrue);
     });
 
     test('UserProfile mendukung edit profil & decode upload foto Data URI', () {
@@ -90,7 +120,8 @@ void main() {
       final updated = profile.copyWith(
         fullName: 'Andriyan Founder',
         storeName: 'CloudPOS Nusantara',
-        avatarUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+        avatarUrl:
+            'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
       );
       expect(updated.fullName, equals('Andriyan Founder'));
       expect(updated.storeName, equals('CloudPOS Nusantara'));

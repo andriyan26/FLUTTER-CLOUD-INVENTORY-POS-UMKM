@@ -30,7 +30,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       } else if (_dateFilter == '7 Hari') {
         if (now.difference(tx.createdAt).inDays > 7) return false;
       } else if (_dateFilter == 'Bulan Ini') {
-        if (tx.createdAt.year != now.year || tx.createdAt.month != now.month) {
+        if (now.difference(tx.createdAt).inDays > 30) {
           return false;
         }
       }
@@ -280,11 +280,36 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                                               color: AppColors.posOrange,
                                             ),
                                           ),
-                                          const SizedBox(width: 6),
-                                          const Icon(
-                                            Icons.print_outlined,
-                                            size: 18,
-                                            color: AppColors.textMuted,
+                                          const SizedBox(width: 8),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 9,
+                                              vertical: 4,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: AppColors.posOrangeLight,
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            child: const Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.print_rounded,
+                                                  size: 13,
+                                                  color: AppColors.posOrange,
+                                                ),
+                                                SizedBox(width: 4),
+                                                Text(
+                                                  'Struk',
+                                                  style: TextStyle(
+                                                    fontSize: 10.5,
+                                                    fontWeight: FontWeight.w800,
+                                                    color:
+                                                        AppColors.posOrangeDark,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ],
                                       ),
