@@ -185,41 +185,4 @@ class AuthService {
     }
     await _localDb.clearActiveSession();
   }
-        data: {
-          'full_name': fullName.trim(),
-          'role': role,
-        },
-      );
-      final user = response.user;
-      if (user == null) {
-        throw Exception('Registrasi gagal. Coba gunakan email lain.');
-      }
-      return UserProfile(
-        id: user.id,
-        email: email.trim(),
-        fullName: fullName.trim(),
-        role: role,
-        createdAt: DateTime.now(),
-      );
-    }
-
-    await Future.delayed(const Duration(milliseconds: 400));
-    _demoSessionUser = UserProfile(
-      id: 'cloud-${DateTime.now().millisecondsSinceEpoch}',
-      email: email.trim(),
-      fullName: fullName.trim(),
-      role: role,
-      createdAt: DateTime.now(),
-    );
-    return _demoSessionUser!;
-  }
-
-  /// Logout & hapus session
-  Future<void> signOut() async {
-    final client = SupabaseConfig.clientOrNull;
-    if (client != null) {
-      await client.auth.signOut();
-    }
-    _demoSessionUser = null;
-  }
 }

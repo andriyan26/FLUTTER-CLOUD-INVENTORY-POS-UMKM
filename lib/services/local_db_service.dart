@@ -4,7 +4,6 @@ import '../models/category_model.dart';
 import '../models/product_model.dart';
 import '../models/transaction_model.dart';
 import '../models/user_profile.dart';
-import 'category_service.dart';
 import 'product_service.dart';
 
 /// Service Database Lokal Terintegrasi & Permanen
@@ -485,3 +484,4 @@ class LocalDbService {
     await prefs.remove(_keyCustomSupabaseKey);
   }
 }
+
