@@ -1,48 +1,84 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/config/supabase_config.dart';
 import '../core/constants/app_constants.dart';
 
 class StorageService {
-  static const int maxFileSizeBytes = 3 * 1024 * 1024; // Maksimal 3 MB
-  static const List<String> allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+  static const int maxFileSizeBytes = 5 * 1024 * 1024; // Maksimal 5 MB
+  static const List<String> allowedExtensions = [
+    'jpg',
+    'jpeg',
+    'png',
+    'webp',
+    'gif',
+  ];
 
-  /// Upload gambar ke Supabase Storage (dengan validasi format & ukuran)
+  /// Upload gambar produk ke Supabase Storage atau konversi langsung ke Data URI di Mode Demo
   Future<String> uploadProductImage({
     required Uint8List bytes,
     required String fileName,
   }) async {
+    return _uploadOrEncode(
+      bytes: bytes,
+      fileName: fileName,
+      folder: 'products',
+    );
+  }
+
+  /// Upload foto profil / avatar pengguna
+  Future<String> uploadAvatarImage({
+    required Uint8List bytes,
+    required String fileName,
+  }) async {
+    return _uploadOrEncode(
+      bytes: bytes,
+      fileName: fileName,
+      folder: 'avatars',
+    );
+  }
+
+  Future<String> _uploadOrEncode({
+    required Uint8List bytes,
+    required String fileName,
+    required String folder,
+  }) async {
     if (bytes.lengthInBytes > maxFileSizeBytes) {
-      throw Exception('Ukuran gambar melebihi batas maksimal 3 MB.');
+      throw Exception('Ukuran gambar melebihi batas maksimal 5 MB.');
     }
 
-    final ext = fileName.split('.').last.toLowerCase();
-    if (!allowedExtensions.contains(ext)) {
-      throw Exception(
-        'Format file .$ext tidak didukung. Gunakan JPG, PNG, atau WEBP.',
-      );
-    }
+    final rawExt = fileName.contains('.')
+        ? fileName.split('.').last.toLowerCase()
+        : 'jpg';
+    final ext = allowedExtensions.contains(rawExt) ? rawExt : 'jpg';
+    final mimeType = 'image/${ext == 'jpg' ? 'jpeg' : ext}';
 
     final client = SupabaseConfig.clientOrNull;
     if (client != null) {
-      final path =
-          'products/${DateTime.now().millisecondsSinceEpoch}_$fileName';
-      await client.storage.from(AppConstants.productImagesBucket).uploadBinary(
-            path,
-            bytes,
-            fileOptions: FileOptions(
-              contentType: 'image/${ext == 'jpg' ? 'jpeg' : ext}',
-              upsert: true,
-            ),
-          );
-      return client.storage
-          .from(AppConstants.productImagesBucket)
-          .getPublicUrl(path);
+      try {
+        final safeName = fileName.replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '_');
+        final path =
+            '$folder/${DateTime.now().millisecondsSinceEpoch}_$safeName';
+        await client.storage
+            .from(AppConstants.productImagesBucket)
+            .uploadBinary(
+              path,
+              bytes,
+              fileOptions: FileOptions(
+                contentType: mimeType,
+                upsert: true,
+              ),
+            );
+        return client.storage
+            .from(AppConstants.productImagesBucket)
+            .getPublicUrl(path);
+      } catch (_) {
+        // Fallback ke Data URI agar gambar yang dipilih pengguna tetap tampil 100%
+      }
     }
 
-    // Jika mode demo tanpa Supabase Storage aktif, kembalikan gambar kurasi berkualitas tinggi
-    await Future.delayed(const Duration(milliseconds: 350));
-    return 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=600&q=80';
+    await Future.delayed(const Duration(milliseconds: 220));
+    final b64 = base64Encode(bytes);
+    return 'data:$mimeType;base64,$b64';
   }
 }
-

@@ -84,3 +84,4 @@ class _SmoothStaggeredRevealState extends State<SmoothStaggeredReveal>
     );
   }
 }
+

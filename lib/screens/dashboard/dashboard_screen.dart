@@ -147,73 +147,75 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         beginOffset: const Offset(0, -0.15),
                         child: Row(
                           children: [
-                            Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    AppColors.posOrange,
-                                    AppColors.posOrangeDark,
+                            GestureDetector(
+                              onTap: () => widget.onSwitchTab?.call(5),
+                              child: Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      AppColors.posOrange,
+                                      AppColors.loginPrimaryGreen,
+                                    ],
+                                  ),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Color(0x33F05A28),
+                                      blurRadius: 10,
+                                      offset: Offset(0, 4),
+                                    ),
                                   ],
                                 ),
-                                shape: BoxShape.circle,
-                                border:
-                                    Border.all(color: Colors.white, width: 2),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Color(0x33F05A28),
-                                    blurRadius: 10,
-                                    offset: Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              alignment: Alignment.center,
-                              child: Text(
-                                (user?.fullName.isNotEmpty == true)
-                                    ? user!.fullName[0].toUpperCase()
-                                    : 'A',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 17,
+                                child: CustomAvatarImage(
+                                  avatarUrl: user?.avatarUrl ?? '',
+                                  fullName: user?.fullName ?? 'Andriyan',
+                                  size: 42,
                                 ),
                               ),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Bonjour, ${user?.fullName.split(' ').first ?? 'Andriyan'}',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.w900,
-                                      color: AppColors.textDarkSlate,
-                                      letterSpacing: -0.3,
+                              child: GestureDetector(
+                                onTap: () => widget.onSwitchTab?.call(5),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Bonjour, ${user?.fullName.split(' ').first ?? 'Andriyan'}',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.w900,
+                                        color: AppColors.textDarkSlate,
+                                        letterSpacing: -0.3,
+                                      ),
                                     ),
-                                  ),
-                                  Row(
-                                    children: [
-                                      Text(
-                                        '${user?.isAdmin == true ? 'Cabang Utama' : 'Kasir Aktif'} • CloudPOS',
-                                        style: const TextStyle(
-                                          fontSize: 11.5,
-                                          color: AppColors.textMuted,
-                                          fontWeight: FontWeight.w600,
+                                    Row(
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            user?.storeName ??
+                                                'CloudPOS • Cabang Utama',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontSize: 11.5,
+                                              color: AppColors.textMuted,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
                                         ),
-                                      ),
-                                      const Icon(
-                                        Icons.keyboard_arrow_down_rounded,
-                                        size: 15,
-                                        color: AppColors.textMuted,
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                        const Icon(
+                                          Icons.keyboard_arrow_down_rounded,
+                                          size: 15,
+                                          color: AppColors.textMuted,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                             if (auth.isAdmin)

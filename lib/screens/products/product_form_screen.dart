@@ -219,15 +219,44 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Galeri & Upload Gambar
-              const Text(
-                'Foto & Galeri Produk (Supabase Storage)',
-                style: TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 13.5,
-                  color: AppColors.textDarkSlate,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Foto & Galeri Produk',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13.5,
+                      color: AppColors.textDarkSlate,
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: _isUploadingImage ? null : _pickAndUploadImage,
+                    icon: _isUploadingImage
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(
+                            Icons.upload_file_rounded,
+                            size: 16,
+                            color: AppColors.posOrange,
+                          ),
+                    label: Text(
+                      _isUploadingImage
+                          ? 'Mengunggah...'
+                          : 'Upload Foto dari Perangkat',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.posOrange,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               if (_galleryUrls.isNotEmpty)
                 SizedBox(
                   height: 94,

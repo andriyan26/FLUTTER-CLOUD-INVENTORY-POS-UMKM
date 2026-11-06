@@ -30,8 +30,17 @@ class AuthService {
       return UserProfile(
         id: user.id,
         email: user.email ?? '',
-        fullName: user.userMetadata?['full_name']?.toString() ?? 'Admin UMKM',
+        fullName: user.userMetadata?['full_name']?.toString() ?? 'Andriyan',
         role: user.userMetadata?['role']?.toString() ?? 'admin',
+        avatarUrl: user.userMetadata?['avatar_url']?.toString() ?? '',
+        phoneNumber: user.userMetadata?['phone_number']?.toString() ??
+            '+62 812-8899-2026',
+        storeName: user.userMetadata?['store_name']?.toString() ??
+            'CloudPOS • Cabang Utama',
+        storeAddress: user.userMetadata?['store_address']?.toString() ??
+            'Jl. Asia Afrika No. 88, Bandung',
+        bio: user.userMetadata?['bio']?.toString() ??
+            'Founder & Head of Operations UMKM CloudPOS',
         createdAt: DateTime.now(),
       );
     }
@@ -46,7 +55,9 @@ class AuthService {
   }) async {
     final input = emailOrUsername.trim();
     if (input.isEmpty || password.length < 6) {
-      throw Exception('Email/username dan password (min. 6 karakter) wajib valid.');
+      throw Exception(
+        'Email/username dan password (min. 6 karakter) wajib valid.',
+      );
     }
 
     final client = SupabaseConfig.clientOrNull;
@@ -74,8 +85,9 @@ class AuthService {
       return UserProfile(
         id: user.id,
         email: user.email ?? email,
-        fullName: user.userMetadata?['full_name']?.toString() ?? 'User UMKM',
+        fullName: user.userMetadata?['full_name']?.toString() ?? 'Andriyan',
         role: user.userMetadata?['role']?.toString() ?? 'admin',
+        avatarUrl: user.userMetadata?['avatar_url']?.toString() ?? '',
         createdAt: DateTime.now(),
       );
     }
@@ -84,10 +96,17 @@ class AuthService {
     await Future.delayed(const Duration(milliseconds: 450));
     final lower = input.toLowerCase();
 
-    if (password != '123456' && password != 'admin123' && password != 'kasir123') {
+    if (password != '123456' &&
+        password != 'admin123' &&
+        password != 'kasir123') {
       throw Exception(
         'Password salah. Untuk mode demo gunakan: 123456 (atau admin123 / kasir123).',
       );
+    }
+
+    // Jika sebelumnya sudah edit profil di sesi ini, pertahankan perubahannya
+    if (_demoSessionUser != null) {
+      return _demoSessionUser!;
     }
 
     final isKasir = lower.contains('kasir');
@@ -96,9 +115,46 @@ class AuthService {
       email: lower.contains('@') ? lower : '$lower@umkm.id',
       fullName: isKasir ? 'Siti Rahma (Kasir)' : 'Andriyan (Admin UMKM)',
       role: isKasir ? 'kasir' : 'admin',
+      avatarUrl:
+          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80',
+      phoneNumber: '+62 812-8899-2026',
+      storeName: 'CloudPOS • Cabang Utama UMKM',
+      storeAddress: 'Jl. Asia Afrika No. 88, Kota Bandung',
+      bio: 'Founder & Senior Store Manager CloudPOS UMKM',
       createdAt: DateTime.now(),
     );
     return _demoSessionUser!;
+  }
+
+  /// Update Profil Pengguna (Nama, Foto Avatar, Toko, Role, Nomor HP, Alamat)
+  Future<UserProfile> updateProfile(UserProfile updated) async {
+    final client = SupabaseConfig.clientOrNull;
+    if (client != null) {
+      try {
+        await client.from('profiles').upsert({
+          'id': updated.id,
+          'full_name': updated.fullName,
+          'role': updated.role,
+        });
+        await client.auth.updateUser(
+          UserAttributes(
+            data: {
+              'full_name': updated.fullName,
+              'role': updated.role,
+              'avatar_url': updated.avatarUrl,
+              'phone_number': updated.phoneNumber,
+              'store_name': updated.storeName,
+              'store_address': updated.storeAddress,
+              'bio': updated.bio,
+            },
+          ),
+        );
+      } catch (_) {}
+    }
+
+    await Future.delayed(const Duration(milliseconds: 220));
+    _demoSessionUser = updated;
+    return updated;
   }
 
   /// Registrasi akun baru
@@ -151,4 +207,3 @@ class AuthService {
     _demoSessionUser = null;
   }
 }
-

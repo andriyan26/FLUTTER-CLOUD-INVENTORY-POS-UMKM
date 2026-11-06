@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/currency_formatter.dart';
 import '../../models/transaction_model.dart';
+import '../../providers/auth_provider.dart';
 
 class ReceiptDialog extends StatelessWidget {
   final TransactionModel transaction;
@@ -13,6 +15,9 @@ class ReceiptDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    final user = auth.currentUser;
+
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
       backgroundColor: Colors.white,
@@ -23,7 +28,7 @@ class ReceiptDialog extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Ilustrasi Tas Belanja Oranye seperti "Lamma - Votre commande est en préparation" di Video 2 (00:16)
+              // Ilustrasi Tas Belanja Oranye seperti di Video 2 (00:16)
               Container(
                 width: 84,
                 height: 84,
@@ -60,7 +65,27 @@ class ReceiptDialog extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
+              if (auth.printStoreHeaderOnReceipt) ...[
+                Text(
+                  user?.storeName ?? 'CloudPOS • Cabang Utama UMKM',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.loginHeaderDarkGreen,
+                  ),
+                ),
+                Text(
+                  user?.storeAddress ?? 'Jl. Asia Afrika No. 88, Kota Bandung',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textMuted,
+                  ),
+                ),
+                const SizedBox(height: 6),
+              ],
               const Text(
                 'Transaksi Berhasil!',
                 style: TextStyle(
@@ -89,7 +114,11 @@ class ReceiptDialog extends StatelessWidget {
               const Divider(height: 1),
               const SizedBox(height: 10),
 
-              // Info Pelanggan & Pembayaran
+              // Info Kasir, Pelanggan & Pembayaran
+              _buildInfoRow(
+                'Kasir Bertugas',
+                user?.fullName.split(' ').first ?? 'Andriyan',
+              ),
               _buildInfoRow('Pelanggan', transaction.customerName),
               _buildInfoRow('Metode Bayar', transaction.paymentMethod),
               const SizedBox(height: 8),
@@ -141,6 +170,13 @@ class ReceiptDialog extends StatelessWidget {
               const SizedBox(height: 8),
               const Divider(height: 1),
               const SizedBox(height: 8),
+              if (auth.enableTaxPpn)
+                _buildInfoRow(
+                  'Estimasi PPN (11% Termasuk)',
+                  CurrencyFormatter.formatRupiah(
+                    (transaction.total * 0.11).round(),
+                  ),
+                ),
               _buildInfoRow(
                 'Total Tagihan',
                 CurrencyFormatter.formatRupiah(transaction.total),
@@ -238,4 +274,3 @@ class ReceiptDialog extends StatelessWidget {
     );
   }
 }
-

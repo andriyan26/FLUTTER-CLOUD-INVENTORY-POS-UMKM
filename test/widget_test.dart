@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:cloud_inventory_pos_umkm/core/utils/currency_formatter.dart';
 import 'package:cloud_inventory_pos_umkm/core/utils/validators.dart';
+import 'package:cloud_inventory_pos_umkm/core/widgets/custom_cached_image.dart';
 import 'package:cloud_inventory_pos_umkm/models/product_model.dart';
+import 'package:cloud_inventory_pos_umkm/models/user_profile.dart';
 import 'package:cloud_inventory_pos_umkm/providers/cart_provider.dart';
 import 'package:cloud_inventory_pos_umkm/services/report_service.dart';
 
@@ -75,6 +77,26 @@ void main() {
       final lowList = summary['lowStockProducts'] as List<ProductModel>;
       expect(lowList.length, equals(1));
       expect(lowList.first.sku, equals('UMKM-006'));
+    });
+
+    test('UserProfile mendukung edit profil & decode upload foto Data URI', () {
+      final profile = UserProfile(
+        id: 'u-1',
+        email: 'andriyan@umkm.id',
+        fullName: 'Andriyan',
+        role: 'admin',
+        createdAt: DateTime.now(),
+      );
+      final updated = profile.copyWith(
+        fullName: 'Andriyan Founder',
+        storeName: 'CloudPOS Nusantara',
+        avatarUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+      );
+      expect(updated.fullName, equals('Andriyan Founder'));
+      expect(updated.storeName, equals('CloudPOS Nusantara'));
+      final decoded = CustomProductImage.tryDecodeDataUri(updated.avatarUrl);
+      expect(decoded, isNotNull);
+      expect(decoded!.isNotEmpty, isTrue);
     });
   });
 }

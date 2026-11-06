@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 
@@ -19,18 +21,45 @@ class CustomProductImage extends StatelessWidget {
     this.fallbackLabel = 'UMKM',
   });
 
+  static Uint8List? tryDecodeDataUri(String uri) {
+    if (!uri.startsWith('data:image/')) return null;
+    final commaIdx = uri.indexOf(',');
+    if (commaIdx == -1 || commaIdx + 1 >= uri.length) return null;
+    try {
+      return base64Decode(uri.substring(commaIdx + 1));
+    } catch (_) {
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final radius = borderRadius ?? BorderRadius.circular(16);
+    final trimmed = imageUrl.trim();
 
-    if (imageUrl.trim().isEmpty) {
+    if (trimmed.isEmpty) {
       return _buildFallback(radius);
+    }
+
+    final memoryBytes = tryDecodeDataUri(trimmed);
+    if (memoryBytes != null) {
+      return ClipRRect(
+        borderRadius: radius,
+        child: Image.memory(
+          memoryBytes,
+          width: width,
+          height: height,
+          fit: fit,
+          filterQuality: FilterQuality.medium,
+          errorBuilder: (_, __, ___) => _buildFallback(radius),
+        ),
+      );
     }
 
     return ClipRRect(
       borderRadius: radius,
       child: Image.network(
-        imageUrl,
+        trimmed,
         width: width,
         height: height,
         fit: fit,
@@ -103,3 +132,73 @@ class CustomProductImage extends StatelessWidget {
   }
 }
 
+class CustomAvatarImage extends StatelessWidget {
+  final String avatarUrl;
+  final String fullName;
+  final double size;
+
+  const CustomAvatarImage({
+    super.key,
+    required this.avatarUrl,
+    required this.fullName,
+    this.size = 56,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final trimmed = avatarUrl.trim();
+    final initial =
+        fullName.trim().isNotEmpty ? fullName.trim()[0].toUpperCase() : 'A';
+
+    if (trimmed.isEmpty) {
+      return _buildInitialCircle(initial);
+    }
+
+    final memoryBytes = CustomProductImage.tryDecodeDataUri(trimmed);
+    if (memoryBytes != null) {
+      return ClipOval(
+        child: Image.memory(
+          memoryBytes,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _buildInitialCircle(initial),
+        ),
+      );
+    }
+
+    return ClipOval(
+      child: Image.network(
+        trimmed,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _buildInitialCircle(initial),
+      ),
+    );
+  }
+
+  Widget _buildInitialCircle(String initial) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppColors.posOrange, AppColors.posOrangeDark],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        shape: BoxShape.circle,
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        initial,
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w900,
+          fontSize: size * 0.4,
+        ),
+      ),
+    );
+  }
+}
