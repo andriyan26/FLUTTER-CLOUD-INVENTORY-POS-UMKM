@@ -168,29 +168,51 @@ class _DashboardScreenState extends State<DashboardScreen>
                           children: [
                             GestureDetector(
                               onTap: () => widget.onSwitchTab?.call(5),
-                              child: Container(
-                                padding: const EdgeInsets.all(2),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      AppColors.posOrange,
-                                      AppColors.loginPrimaryGreen,
-                                    ],
-                                  ),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Color(0x33F05A28),
-                                      blurRadius: 10,
-                                      offset: Offset(0, 4),
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(2.2),
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          AppColors.posOrange,
+                                          Color(0xFFF59E0B),
+                                          AppColors.loginPrimaryGreen,
+                                        ],
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Color(0x33F05A28),
+                                          blurRadius: 10,
+                                          offset: Offset(0, 4),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                                child: CustomAvatarImage(
-                                  avatarUrl: user?.avatarUrl ?? '',
-                                  fullName: user?.fullName ?? 'Andriyan',
-                                  size: 42,
-                                ),
+                                    child: CustomAvatarImage(
+                                      avatarUrl: user?.avatarUrl ?? '',
+                                      fullName: user?.fullName ?? 'Andriyan',
+                                      size: 42,
+                                    ),
+                                  ),
+                                  Positioned(
+                                    right: 0,
+                                    bottom: 0,
+                                    child: Container(
+                                      width: 12,
+                                      height: 12,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF22C55E),
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: Colors.white,
+                                          width: 2,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                             const SizedBox(width: 10),
@@ -201,11 +223,11 @@ class _DashboardScreenState extends State<DashboardScreen>
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Bonjour, ${user?.fullName.split(' ').first ?? 'Andriyan'}',
+                                      'Bonjour, ${user?.fullName.split(' ').first ?? 'Andriyan'} 👋',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(
-                                        fontSize: 17,
+                                        fontSize: 16.5,
                                         fontWeight: FontWeight.w900,
                                         color: AppColors.textDarkSlate,
                                         letterSpacing: -0.3,
@@ -216,11 +238,11 @@ class _DashboardScreenState extends State<DashboardScreen>
                                         Flexible(
                                           child: Text(
                                             user?.storeName ??
-                                                'CloudPOS • Cabang Utama',
+                                                'CloudPOS • Cabang Utama UMKM',
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: const TextStyle(
-                                              fontSize: 11.5,
+                                              fontSize: 11.2,
                                               color: AppColors.textMuted,
                                               fontWeight: FontWeight.w600,
                                             ),
@@ -279,21 +301,50 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            Container(
-                              width: 38,
-                              height: 38,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                                border:
-                                    Border.all(color: AppColors.borderLight),
-                              ),
-                              child: const Icon(
-                                Icons.notifications_none_rounded,
-                                size: 20,
-                                color: AppColors.textDarkSlate,
-                              ),
+                            const SizedBox(width: 7),
+                            Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                Container(
+                                  width: 38,
+                                  height: 38,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: AppColors.borderLight,
+                                    ),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Color(0x0A0F172A),
+                                        blurRadius: 8,
+                                        offset: Offset(0, 3),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(
+                                    Icons.notifications_none_rounded,
+                                    size: 20,
+                                    color: AppColors.textDarkSlate,
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 8,
+                                  right: 9,
+                                  child: Container(
+                                    width: 7.5,
+                                    height: 7.5,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.posOrange,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.white,
+                                        width: 1.4,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -301,57 +352,96 @@ class _DashboardScreenState extends State<DashboardScreen>
 
                       const SizedBox(height: 14),
 
-                      // 2. HERO HEADLINE + SEARCH BAR MUNCUL PERLAHAN (Persis Video 2)
+                      // 2. HERO HEADLINE + LIVE MENU BADGE + SEARCH BAR MUNCUL PERLAHAN
                       SmoothStaggeredReveal(
                         index: 1,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            RichText(
-                              text: const TextSpan(
-                                style: TextStyle(
-                                  fontSize: 25,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: -0.7,
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: RichText(
+                                    text: const TextSpan(
+                                      style: TextStyle(
+                                        fontSize: 23.5,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: -0.7,
+                                      ),
+                                      children: [
+                                        TextSpan(
+                                          text: 'Ada pesanan ? ',
+                                          style: TextStyle(
+                                            color: AppColors.textDarkSlate,
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text: 'Layani Cepat.',
+                                          style: TextStyle(
+                                            color: AppColors.posOrange,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                                children: [
-                                  TextSpan(
-                                    text: 'Ada pesanan ? ',
-                                    style: TextStyle(
-                                      color: AppColors.textDarkSlate,
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8.5,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      colors: [
+                                        Color(0xFFFFF4ED),
+                                        Color(0xFFFFE4D4),
+                                      ],
+                                    ),
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                      color: AppColors.posOrange
+                                          .withValues(alpha: 0.28),
                                     ),
                                   ),
-                                  TextSpan(
-                                    text: 'Layani Cepat.',
-                                    style: TextStyle(
-                                      color: AppColors.posOrange,
+                                  child: Text(
+                                    '✨ ${productProvider.totalProductsCount} Menu',
+                                    style: const TextStyle(
+                                      fontSize: 10.2,
+                                      fontWeight: FontWeight.w900,
+                                      color: AppColors.posOrangeDark,
                                     ),
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 11),
                             Container(
                               height: 48,
                               padding:
-                                  const EdgeInsets.only(left: 18, right: 5),
+                                  const EdgeInsets.only(left: 16, right: 5),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(30),
                                 border: Border.all(
-                                  color: const Color(0xFFEDEFF2),
-                                  width: 1.2,
+                                  color: const Color(0xFFE8ECF2),
+                                  width: 1.3,
                                 ),
                                 boxShadow: const [
                                   BoxShadow(
-                                    color: Color(0x080F172A),
-                                    blurRadius: 12,
-                                    offset: Offset(0, 4),
+                                    color: Color(0x0D0F172A),
+                                    blurRadius: 16,
+                                    offset: Offset(0, 5),
                                   ),
                                 ],
                               ),
                               child: Row(
                                 children: [
+                                  const Icon(
+                                    Icons.manage_search_rounded,
+                                    color: AppColors.posOrange,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
                                   Expanded(
                                     child: TextField(
                                       onChanged: (val) {
@@ -367,7 +457,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                             'Rechercher / Cari produk, SKU...',
                                         hintStyle: TextStyle(
                                           color: Color(0xFF94A3B8),
-                                          fontSize: 13,
+                                          fontSize: 12.8,
                                         ),
                                         border: InputBorder.none,
                                         enabledBorder: InputBorder.none,
@@ -381,8 +471,22 @@ class _DashboardScreenState extends State<DashboardScreen>
                                     width: 38,
                                     height: 38,
                                     decoration: const BoxDecoration(
-                                      color: AppColors.posOrange,
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Color(0xFFFF8A3D),
+                                          AppColors.posOrange,
+                                        ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
                                       shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Color(0x38F05A28),
+                                          blurRadius: 8,
+                                          offset: Offset(0, 3),
+                                        ),
+                                      ],
                                     ),
                                     child: const Icon(
                                       Icons.search_rounded,
@@ -399,168 +503,304 @@ class _DashboardScreenState extends State<DashboardScreen>
 
                       const SizedBox(height: 14),
 
-                      // 3. PROMO BANNER MEWAH HIJAU DENGAN ANIMASI MOTOR BERJALAN & LACAK KURIR LIVE
+                      // 3. PROMO BANNER 3D MEWAH HIJAU ZAMRUD DENGAN ANIMASI MOTOR & STRIP RINGKASAN KASIR
                       SmoothStaggeredReveal(
                         index: 2,
-                        child: Container(
-                          height: 112,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [
-                                Color(0xFF285214),
-                                Color(0xFF4E8D2A),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(22),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Color(0x30285214),
-                                blurRadius: 16,
-                                offset: Offset(0, 6),
+                        child: Column(
+                          children: [
+                            Container(
+                              height: 118,
+                              clipBehavior: Clip.antiAlias,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFF1B3F0D),
+                                    Color(0xFF2D6016),
+                                    Color(0xFF4E8D2A),
+                                  ],
+                                  stops: [0.0, 0.55, 1.0],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(24),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(0x34285214),
+                                    blurRadius: 18,
+                                    offset: Offset(0, 7),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              AnimatedBuilder(
-                                animation: _bannerScooterController,
-                                builder: (context, _) {
-                                  final bounceY = math.sin(
-                                        _bannerScooterController.value *
-                                            math.pi *
-                                            2,
-                                      ) *
-                                      -3.0;
-                                  return Transform.translate(
-                                    offset: Offset(0, bounceY),
-                                    child: CloudPosScooterIllustration(
-                                      size: 84,
-                                      wheelPhase:
-                                          _bannerScooterController.value,
-                                      showSpeedLines: true,
-                                    ),
-                                  );
-                                },
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Text(
-                                      'FAST & CLOUD POS DELIVERY',
-                                      style: TextStyle(
-                                        color: Color(0xFFBEF264),
-                                        fontSize: 13.5,
-                                        fontWeight: FontWeight.w900,
-                                        letterSpacing: 0.3,
-                                      ),
-                                    ),
-                                    const Text(
-                                      'Kasir, stok & kurir skuter aktif real-time',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Row(
-                                      children: [
-                                        GestureDetector(
-                                          onTap: () =>
-                                              widget.onSwitchTab?.call(2),
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 10,
-                                              vertical: 4.5,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: AppColors.posOrange,
-                                              borderRadius:
-                                                  BorderRadius.circular(14),
-                                            ),
-                                            child: const Text(
-                                              'BUKA KASIR',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 9.5,
-                                                fontWeight: FontWeight.w900,
-                                              ),
-                                            ),
-                                          ),
+                              child: Stack(
+                                children: [
+                                  // Dekorasi Lingkaran Cahaya Emas di Sudut Kanan Atas Banner
+                                  Positioned(
+                                    right: -24,
+                                    top: -28,
+                                    child: Container(
+                                      width: 110,
+                                      height: 110,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        gradient: RadialGradient(
+                                          colors: [
+                                            const Color(0xFFBEF264)
+                                                .withValues(alpha: 0.25),
+                                            Colors.transparent,
+                                          ],
                                         ),
-                                        const SizedBox(width: 6),
-                                        GestureDetector(
-                                          onTap: () {
-                                            showDialog(
-                                              context: context,
-                                              builder: (_) =>
-                                                  const LiveDeliveryTrackerDialog(),
+                                      ),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 10,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        AnimatedBuilder(
+                                          animation: _bannerScooterController,
+                                          builder: (context, _) {
+                                            final bounceY = math.sin(
+                                                  _bannerScooterController
+                                                          .value *
+                                                      math.pi *
+                                                      2,
+                                                ) *
+                                                -3.0;
+                                            return Transform.translate(
+                                              offset: Offset(0, bounceY),
+                                              child:
+                                                  CloudPosScooterIllustration(
+                                                size: 86,
+                                                wheelPhase:
+                                                    _bannerScooterController
+                                                        .value,
+                                                showSpeedLines: true,
+                                              ),
                                             );
                                           },
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 9,
-                                              vertical: 4.5,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: Colors.white
-                                                  .withValues(alpha: 0.18),
-                                              borderRadius:
-                                                  BorderRadius.circular(14),
-                                              border: Border.all(
-                                                color: Colors.white
-                                                    .withValues(alpha: 0.45),
-                                              ),
-                                            ),
-                                            child: const Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Icon(
-                                                  Icons.location_on_rounded,
-                                                  color: Color(0xFFBEF264),
-                                                  size: 11,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                  horizontal: 7,
+                                                  vertical: 2,
                                                 ),
-                                                SizedBox(width: 3),
-                                                Text(
-                                                  'KURIR LIVE',
+                                                decoration: BoxDecoration(
+                                                  color: Colors.black
+                                                      .withValues(alpha: 0.24),
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                ),
+                                                child: const Text(
+                                                  '● LIVE CLOUD POS & DELIVERY',
                                                   style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 9.5,
+                                                    color: Color(0xFFBEF264),
+                                                    fontSize: 8.8,
                                                     fontWeight: FontWeight.w900,
+                                                    letterSpacing: 0.4,
                                                   ),
                                                 ),
-                                              ],
-                                            ),
+                                              ),
+                                              const SizedBox(height: 3),
+                                              const Text(
+                                                'FAST & CLOUD POS DELIVERY',
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 13.2,
+                                                  fontWeight: FontWeight.w900,
+                                                  letterSpacing: 0.2,
+                                                ),
+                                              ),
+                                              const Text(
+                                                'Kasir, stok & kurir skuter aktif real-time',
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  color: Color(0xFFE2F2D5),
+                                                  fontSize: 10.6,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 7),
+                                              Row(
+                                                children: [
+                                                  GestureDetector(
+                                                    onTap: () => widget
+                                                        .onSwitchTab
+                                                        ?.call(2),
+                                                    child: Container(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                        horizontal: 10,
+                                                        vertical: 4.5,
+                                                      ),
+                                                      decoration: BoxDecoration(
+                                                        gradient:
+                                                            const LinearGradient(
+                                                          colors: [
+                                                            Color(0xFFFF8A3D),
+                                                            AppColors.posOrange,
+                                                          ],
+                                                        ),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(14),
+                                                        boxShadow: const [
+                                                          BoxShadow(
+                                                            color: Color(
+                                                              0x44F05A28,
+                                                            ),
+                                                            blurRadius: 6,
+                                                            offset: Offset(
+                                                              0,
+                                                              2,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      child: const Text(
+                                                        '⚡ BUKA KASIR',
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 9.5,
+                                                          fontWeight:
+                                                              FontWeight.w900,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  GestureDetector(
+                                                    onTap: () {
+                                                      showDialog(
+                                                        context: context,
+                                                        builder: (_) =>
+                                                            const LiveDeliveryTrackerDialog(),
+                                                      );
+                                                    },
+                                                    child: Container(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                        horizontal: 9,
+                                                        vertical: 4.5,
+                                                      ),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.white
+                                                            .withValues(
+                                                          alpha: 0.18,
+                                                        ),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(14),
+                                                        border: Border.all(
+                                                          color: Colors.white
+                                                              .withValues(
+                                                            alpha: 0.45,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      child: const Row(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        children: [
+                                                          Icon(
+                                                            Icons
+                                                                .location_on_rounded,
+                                                            color: Color(
+                                                              0xFFBEF264,
+                                                            ),
+                                                            size: 11,
+                                                          ),
+                                                          SizedBox(width: 3),
+                                                          Text(
+                                                            'KURIR LIVE',
+                                                            style: TextStyle(
+                                                              color:
+                                                                  Colors.white,
+                                                              fontSize: 9.5,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w900,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ],
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(height: 10),
+                            // Strip Ringkasan Kasir Cepat (3 Luxury Glass Pills)
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildQuickPulsePill(
+                                    icon: Icons.payments_rounded,
+                                    iconColor: AppColors.loginPrimaryGreen,
+                                    label: 'Omzet Hari Ini',
+                                    value:
+                                        CurrencyFormatter.formatCompactRupiah(
+                                      txProvider.todaySalesTotal,
+                                    ),
+                                    onTap: () => widget.onSwitchTab?.call(4),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: _buildQuickPulsePill(
+                                    icon: Icons.grid_view_rounded,
+                                    iconColor: AppColors.posOrange,
+                                    label: 'Katalog Aktif',
+                                    value:
+                                        '${productProvider.totalProductsCount} Item • 6 Kat',
+                                    onTap: () => widget.onSwitchTab?.call(1),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: _buildQuickPulsePill(
+                                    icon: Icons.verified_rounded,
+                                    iconColor: const Color(0xFFF59E0B),
+                                    label: 'Rating UMKM',
+                                    value: '4.9 ★ Terbaik',
+                                    onTap: () => widget.onSwitchTab?.call(3),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
 
                       const SizedBox(height: 16),
 
-                      // 4. HORIZONTAL CATEGORY CAROUSEL BULAT BERGAMBAR (Persis Video 2 detik 00:03-00:08)
+                      // 4. HORIZONTAL CATEGORY CAROUSEL BULAT BERGAMBAR + IKON MOSAIC KHUSUS "SEMUA" (BUKAN BURGER!)
                       SmoothStaggeredReveal(
                         index: 3,
                         child: SizedBox(
-                          height: 92,
+                          height: 98,
                           child: ListView.separated(
                             scrollDirection: Axis.horizontal,
                             physics: const BouncingScrollPhysics(),
@@ -578,10 +818,20 @@ class _DashboardScreenState extends State<DashboardScreen>
                               final isSelected =
                                   productProvider.selectedCategoryId == catId;
                               final thumbUrl = isAll
-                                  ? 'assets/produk/makanan_burger_spesial.jpg'
+                                  ? ''
                                   : CategoryService.getCategoryThumbnail(
                                       fullCatName,
                                     );
+                              final itemCount = isAll
+                                  ? productProvider.totalProductsCount
+                                  : productProvider.allProducts
+                                      .where(
+                                        (p) =>
+                                            p.categoryId == catId ||
+                                            p.categoryName.toLowerCase() ==
+                                                fullCatName.toLowerCase(),
+                                      )
+                                      .length;
 
                               return GestureDetector(
                                 onTap: () => _triggerCategorySwitch(
@@ -595,52 +845,128 @@ class _DashboardScreenState extends State<DashboardScreen>
                                       duration:
                                           const Duration(milliseconds: 240),
                                       curve: Curves.easeOutBack,
-                                      child: AnimatedContainer(
-                                        duration:
-                                            const Duration(milliseconds: 240),
-                                        width: 62,
-                                        height: 62,
-                                        padding: const EdgeInsets.all(4),
-                                        decoration: BoxDecoration(
-                                          color: isSelected
-                                              ? AppColors.posOrangeLight
-                                              : const Color(0xFFF3EFEA),
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                            color: isSelected
-                                                ? AppColors.posOrange
-                                                : Colors.transparent,
-                                            width: 2.2,
-                                          ),
-                                          boxShadow: isSelected
-                                              ? const [
-                                                  BoxShadow(
-                                                    color: Color(0x33F05A28),
-                                                    blurRadius: 10,
-                                                    offset: Offset(0, 4),
+                                      child: Stack(
+                                        clipBehavior: Clip.none,
+                                        children: [
+                                          AnimatedContainer(
+                                            duration: const Duration(
+                                              milliseconds: 240,
+                                            ),
+                                            width: 64,
+                                            height: 64,
+                                            padding: const EdgeInsets.all(3.5),
+                                            decoration: BoxDecoration(
+                                              gradient: isSelected
+                                                  ? const LinearGradient(
+                                                      colors: [
+                                                        Color(0xFFFFEDE4),
+                                                        Color(0xFFFFD8C4),
+                                                      ],
+                                                      begin: Alignment.topLeft,
+                                                      end:
+                                                          Alignment.bottomRight,
+                                                    )
+                                                  : const LinearGradient(
+                                                      colors: [
+                                                        Colors.white,
+                                                        Color(0xFFF3EFEA),
+                                                      ],
+                                                    ),
+                                              shape: BoxShape.circle,
+                                              border: Border.all(
+                                                color: isSelected
+                                                    ? AppColors.posOrange
+                                                    : const Color(0xFFE5E0D8),
+                                                width: isSelected ? 2.4 : 1.2,
+                                              ),
+                                              boxShadow: isSelected
+                                                  ? const [
+                                                      BoxShadow(
+                                                        color:
+                                                            Color(0x38F05A28),
+                                                        blurRadius: 12,
+                                                        offset: Offset(0, 4),
+                                                      ),
+                                                    ]
+                                                  : const [
+                                                      BoxShadow(
+                                                        color:
+                                                            Color(0x0A0F172A),
+                                                        blurRadius: 6,
+                                                        offset: Offset(0, 2),
+                                                      ),
+                                                    ],
+                                            ),
+                                            // KHUSUS "SEMUA": Tampilkan Kolase 4 Kategori + Ikon Grid 3D (Bukan Gambar Burger!)
+                                            child: isAll
+                                                ? _buildAllCategoriesMosaicCircle(
+                                                    isSelected,
+                                                  )
+                                                : CustomProductImage(
+                                                    imageUrl: thumbUrl,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                      40,
+                                                    ),
+                                                    fallbackLabel: shortName,
                                                   ),
-                                                ]
-                                              : null,
-                                        ),
-                                        child: CustomProductImage(
-                                          imageUrl: thumbUrl,
-                                          borderRadius:
-                                              BorderRadius.circular(40),
-                                          fallbackLabel: shortName,
-                                        ),
+                                          ),
+                                          // Badge Jumlah Produk di Sudut Kanan Bawah Lingkaran Kategori
+                                          Positioned(
+                                            right: -2,
+                                            bottom: -1,
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 5.5,
+                                                vertical: 1.5,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: isSelected
+                                                    ? AppColors.posOrange
+                                                    : AppColors.textDarkSlate,
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                border: Border.all(
+                                                  color: Colors.white,
+                                                  width: 1.5,
+                                                ),
+                                              ),
+                                              child: Text(
+                                                '$itemCount',
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 8.5,
+                                                  fontWeight: FontWeight.w900,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                     const SizedBox(height: 6),
                                     Text(
                                       shortName,
                                       style: TextStyle(
-                                        fontSize: 12,
+                                        fontSize: 11.8,
                                         fontWeight: isSelected
                                             ? FontWeight.w900
-                                            : FontWeight.w600,
+                                            : FontWeight.w700,
                                         color: isSelected
                                             ? AppColors.posOrange
-                                            : AppColors.textMuted,
+                                            : AppColors.textDarkSlate,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    AnimatedContainer(
+                                      duration:
+                                          const Duration(milliseconds: 220),
+                                      width: isSelected ? 14 : 0,
+                                      height: 3,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.posOrange,
+                                        borderRadius: BorderRadius.circular(4),
                                       ),
                                     ),
                                   ],
@@ -659,13 +985,26 @@ class _DashboardScreenState extends State<DashboardScreen>
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
-                              'Katalog Unggulan UMKM',
-                              style: TextStyle(
-                                fontSize: 14.5,
-                                fontWeight: FontWeight.w900,
-                                color: AppColors.textDarkSlate,
-                              ),
+                            Row(
+                              children: [
+                                Container(
+                                  width: 4,
+                                  height: 16,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.posOrange,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                                const SizedBox(width: 7),
+                                Text(
+                                  'Katalog Unggulan UMKM (${products.length})',
+                                  style: const TextStyle(
+                                    fontSize: 14.5,
+                                    fontWeight: FontWeight.w900,
+                                    color: AppColors.textDarkSlate,
+                                  ),
+                                ),
+                              ],
                             ),
                             InkWell(
                               onTap: () => widget.onSwitchTab?.call(1),
@@ -675,13 +1014,23 @@ class _DashboardScreenState extends State<DashboardScreen>
                                   horizontal: 4,
                                   vertical: 2,
                                 ),
-                                child: Text(
-                                  'Lihat Semua',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.posOrange,
-                                  ),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      'Lihat Semua',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.posOrange,
+                                      ),
+                                    ),
+                                    SizedBox(width: 2),
+                                    Icon(
+                                      Icons.arrow_forward_ios_rounded,
+                                      size: 11,
+                                      color: AppColors.posOrange,
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
@@ -1067,6 +1416,178 @@ class _DashboardScreenState extends State<DashboardScreen>
                   ],
                 );
               }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Strip Pill Ringkasan Cepat di Bawah Banner Beranda
+  Widget _buildQuickPulsePill({
+    required IconData icon,
+    required Color iconColor,
+    required String label,
+    required String value,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFEDEFF2)),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x080F172A),
+              blurRadius: 8,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                size: 13,
+                color: iconColor,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+                  Text(
+                    value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 10.2,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.textDarkSlate,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Ikon Lingkaran Khusus Kategori "Semua":
+  /// Menampilkan Kolase 2x2 dari 4 Kategori Berbeda (Minuman, Makanan, Roti, Sembako)
+  /// ditambah Lencana Tengah 3D Grid Oranye (Bukan gambar Burger tunggal!)
+  Widget _buildAllCategoriesMosaicCircle(bool isSelected) {
+    const mosaicThumbs = [
+      'assets/produk/minuman_kopi_susu_gula_aren.jpg',
+      'assets/produk/makanan_nasi_goreng_spesial.jpg',
+      'assets/produk/roti_butter_croissant.jpg',
+      'assets/produk/sembako_beras_premium.jpg',
+    ];
+
+    return ClipOval(
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Column(
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Image.asset(
+                        mosaicThumbs[0],
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    const SizedBox(width: 1.2),
+                    Expanded(
+                      child: Image.asset(
+                        mosaicThumbs[1],
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 1.2),
+              Expanded(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Image.asset(
+                        mosaicThumbs[2],
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    const SizedBox(width: 1.2),
+                    Expanded(
+                      child: Image.asset(
+                        mosaicThumbs[3],
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          // Overlay gelap lembut agar ikon Grid di tengah terlihat kontras & mewah
+          Container(
+            color: Colors.black.withValues(alpha: isSelected ? 0.18 : 0.26),
+          ),
+          Center(
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: isSelected
+                      ? const [Color(0xFFFF8A3D), AppColors.posOrange]
+                      : const [Color(0xFF1E293B), Color(0xFF334155)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white,
+                  width: 1.5,
+                ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x45000000),
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.grid_view_rounded,
+                color: Colors.white,
+                size: 13,
+              ),
             ),
           ),
         ],

@@ -115,43 +115,79 @@ class _ProductCardState extends State<ProductCard> {
                         ),
                       ),
                     ),
-                    // Badge BARU di Kanan Atas jika baru saja ditambahkan
-                    if (isNewlyAdded)
-                      Positioned(
-                        top: 7,
-                        right: 7,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 7,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [
-                                AppColors.posOrange,
-                                AppColors.posOrangeDark,
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(14),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Color(0x40F05A28),
-                                blurRadius: 6,
-                                offset: Offset(0, 2),
+                    // Badge BARU atau Rating Bintang di Kanan Atas
+                    Positioned(
+                      top: 7,
+                      right: 7,
+                      child: isNewlyAdded
+                          ? Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 7,
+                                vertical: 3,
                               ),
-                            ],
-                          ),
-                          child: const Text(
-                            'BARU ✨',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 8.5,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.3,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    AppColors.posOrange,
+                                    AppColors.posOrangeDark,
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(14),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(0x40F05A28),
+                                    blurRadius: 6,
+                                    offset: Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: const Text(
+                                'BARU ✨',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 8.5,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                            )
+                          : Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6.5,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.92),
+                                borderRadius: BorderRadius.circular(14),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(0x18000000),
+                                    blurRadius: 6,
+                                    offset: Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.star_rounded,
+                                    color: Color(0xFFF59E0B),
+                                    size: 11,
+                                  ),
+                                  SizedBox(width: 2),
+                                  Text(
+                                    '4.9',
+                                    style: TextStyle(
+                                      color: AppColors.textDarkSlate,
+                                      fontSize: 9.2,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ),
-                      ),
+                    ),
                   ],
                 ),
               ),
@@ -217,24 +253,42 @@ class _ProductCardState extends State<ProductCard> {
                       ),
                     ),
                   ),
-                  Material(
-                    color: product.isOutOfStock
-                        ? const Color(0xFFE2E8F0)
-                        : const Color(0xFFFFEFE9),
-                    shape: const CircleBorder(),
-                    child: InkWell(
-                      customBorder: const CircleBorder(),
-                      onTap:
-                          product.isOutOfStock ? null : widget.onTapAddToCart,
-                      child: Padding(
-                        padding: const EdgeInsets.all(7.5),
-                        child: Icon(
-                          Icons.add_rounded,
-                          size: 18,
-                          color: product.isOutOfStock
-                              ? AppColors.textMuted
-                              : AppColors.posOrange,
-                        ),
+                  GestureDetector(
+                    onTap: product.isOutOfStock ? null : widget.onTapAddToCart,
+                    child: Container(
+                      width: 33,
+                      height: 33,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: product.isOutOfStock
+                            ? null
+                            : const LinearGradient(
+                                colors: [
+                                  Color(0xFFFF8A3D),
+                                  AppColors.posOrange,
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                        color: product.isOutOfStock
+                            ? const Color(0xFFE2E8F0)
+                            : null,
+                        boxShadow: product.isOutOfStock
+                            ? null
+                            : const [
+                                BoxShadow(
+                                  color: Color(0x38F05A28),
+                                  blurRadius: 8,
+                                  offset: Offset(0, 3),
+                                ),
+                              ],
+                      ),
+                      child: Icon(
+                        Icons.add_rounded,
+                        size: 18,
+                        color: product.isOutOfStock
+                            ? AppColors.textMuted
+                            : Colors.white,
                       ),
                     ),
                   ),

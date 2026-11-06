@@ -15,9 +15,12 @@ class CloudPosEmblemIcon extends StatefulWidget {
   const CloudPosEmblemIcon({
     super.key,
     this.size = 48,
-    this.animate = true,
-    this.showCrownBadge = true,
-  });
+    bool? animate,
+    bool? animatePulse,
+    bool? showCrownBadge,
+    bool? showBadge,
+  })  : animate = animate ?? animatePulse ?? true,
+        showCrownBadge = showCrownBadge ?? showBadge ?? true;
 
   @override
   State<CloudPosEmblemIcon> createState() => _CloudPosEmblemIconState();
@@ -372,3 +375,4 @@ class _CloudPosEmblemPainter extends CustomPainter {
       oldDelegate.shimmerPhase != shimmerPhase ||
       oldDelegate.showCrownBadge != showCrownBadge;
 }
+
