@@ -853,8 +853,10 @@ class _ProductDetailSwipeScreenState extends State<ProductDetailSwipeScreen>
                           onPressed: currentProduct.isOutOfStock
                               ? null
                               : () {
-                                  final error = cartProvider.addProduct(
+                                  final error = cartProvider.addToCart(
                                     currentProduct,
+                                    variant: _selectedSize,
+                                    unitPriceOverride: dynamicPrice,
                                   );
                                   if (error != null) {
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -1348,15 +1350,16 @@ class _UpperAromaAndSparklePainter extends CustomPainter {
       final py = (size.height * 0.46) + math.sin(angle) * radius - (p * 18.0);
 
       final dotRadius = (1.6 + (i % 3) * 0.9) * twinkle;
-      final color = (i.isEven ? sparkleColor : steamColor)
-          .withValues(alpha: (0.72 * fade * twinkle).clamp(0.0, 1.0));
+      final baseAlpha = (0.72 * fade * twinkle).clamp(0.0, 1.0);
+      final baseColor = i.isEven ? sparkleColor : steamColor;
+      final color = baseColor.withValues(alpha: baseAlpha);
 
       // Glow lembut di sekitar bintang
       canvas.drawCircle(
         Offset(px, py),
         dotRadius * 2.2,
         Paint()
-          ..color = color.withValues(alpha: color.a * 0.35)
+          ..color = baseColor.withValues(alpha: baseAlpha * 0.35)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3.0),
       );
 
