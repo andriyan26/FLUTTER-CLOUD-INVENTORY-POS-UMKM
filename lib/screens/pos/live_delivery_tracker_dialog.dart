@@ -243,25 +243,41 @@ class _LiveDeliveryTrackerDialogState extends State<LiveDeliveryTrackerDialog>
               child: AnimatedBuilder(
                 animation: _animController,
                 builder: (context, _) {
-                  final t = math.sin(_animController.value * math.pi);
+                  final p1 = _animController.value;
+                  final p2 = (p1 + 0.5) % 1.0;
+                  final alpha2 = math.sin(p1 * math.pi).clamp(0.0, 1.0);
+                  final bounce = math.sin(p1 * math.pi * 8) * 1.4;
                   return Stack(
                     fit: StackFit.expand,
                     children: [
                       Transform.scale(
-                        scale: 1.0 + t * 0.06,
+                        scale: 1.0 + p1 * 0.34,
+                        alignment: const Alignment(0.02, 0.04),
                         child: Image.asset(
                           'assets/images/boulevard_clean.jpg',
                           fit: BoxFit.cover,
                           alignment: const Alignment(0, 0.35),
                         ),
                       ),
+                      Opacity(
+                        opacity: alpha2,
+                        child: Transform.scale(
+                          scale: 1.0 + p2 * 0.34,
+                          alignment: const Alignment(0.02, 0.04),
+                          child: Image.asset(
+                            'assets/images/boulevard_clean.jpg',
+                            fit: BoxFit.cover,
+                            alignment: const Alignment(0, 0.35),
+                          ),
+                        ),
+                      ),
                       Positioned(
-                        left: 36 + t * 28,
-                        bottom: 8 + t * 22,
+                        left: 26 + math.sin(p1 * math.pi * 2) * 4,
+                        bottom: 10 + bounce,
                         width: 118,
                         height: 175,
-                        child: Transform.scale(
-                          scale: 1.0 - t * 0.16,
+                        child: Transform.rotate(
+                          angle: -0.042,
                           alignment: Alignment.bottomCenter,
                           child: Image.asset(
                             'assets/images/scooter_rider_3d.png',

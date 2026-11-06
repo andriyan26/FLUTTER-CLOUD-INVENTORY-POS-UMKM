@@ -4,13 +4,15 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 
 /// Layar Transisi Animasi Setelah Login Persis VIDEO 2 (KONSEP SETELAH LOGIN.mp4 detik 00:00 - 00:02)
-/// Menggunakan Aset 3D Fotorealistis Multi-Layer:
-/// 1) Latar Jalan Raya Kota Golden Hour (`assets/images/boulevard_clean.jpg`) dengan efek kamera dolly-in 3D,
-///    sinar matahari keemasan, dan pejalan kaki di trotoar.
-/// 2) Layer Kurir & Motor Skuter Oranye Tampak Belakang 3D (`assets/images/scooter_rider_3d.png`) yang
-///    BERJALAN MAJU KE DEPAN-ATAS (`KE DEPAN ATAS`) mengikuti lengkungan lajur jalan raya dengan perspektif 3D,
-///    getaran mesin halus, bayangan aspal dinamis, dan kepulan asap knalpot realistis!
-/// 3) Tombol kapsul frosted-glass "Commencer" di bawah yang melebar menjadi tanda centang ganda (✓✓).
+/// Menggunakan Kamera Chase-Cam 3D Realistis 60fps (Unidirectional Forward Motion — Tidak Pernah Mundur):
+/// 1) Jalan raya boulevard Golden Hour (`assets/images/boulevard_clean.jpg`) bergerak maju terus-menerus
+///    (continuous 3D perspective dolly-in dari titik hilang `Alignment(0.02, 0.04)`) sehingga gedung di kiri,
+///    pohon palem & pejalan kaki di trotoar kanan, serta aspal jalan mengalir melewati kamera persis seperti di video!
+/// 2) Bayangan pepohonan & cahaya matahari di atas permukaan aspal mengalir turun secara perspektif 3D (`1/z`)
+///    melewati bawah roda motor sehingga jalanan terlihat benar-benar berjalan secara nyata.
+/// 3) Kurir motor skuter oranye (`assets/images/scooter_rider_3d.png`) sejajar presisi dengan lajur jalan raya,
+///    melaju mulus ke depan dengan suspensi 60fps, bayangan aspal jatuh ke arah kanan (sesuai arah matahari),
+///    dan berakselerasi maju saat tombol "Commencer" melebar menjadi tanda centang ganda (✓✓).
 class PostLoginWelcomeScreen extends StatefulWidget {
   final VoidCallback onCompleted;
 
@@ -25,8 +27,8 @@ class PostLoginWelcomeScreen extends StatefulWidget {
 
 class _PostLoginWelcomeScreenState extends State<PostLoginWelcomeScreen>
     with TickerProviderStateMixin {
-  late final AnimationController _driveLoopController;
-  late final AnimationController _engineVibrationController;
+  late final AnimationController _forwardRoadController;
+  late final AnimationController _wheelAndSuspensionController;
   late final AnimationController _boostForwardController;
   Timer? _autoLaunchTimer;
 
@@ -37,26 +39,26 @@ class _PostLoginWelcomeScreenState extends State<PostLoginWelcomeScreen>
   void initState() {
     super.initState();
 
-    // Animasi motor berjalan maju ke DEPAN-ATAS sepanjang lajur jalan raya
-    _driveLoopController = AnimationController(
+    // Pergerakan maju jalan raya SATU ARAH (Unidirectional Forward — TIDAK PERNAH MUNDUR!)
+    _forwardRoadController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 3600),
-    )..repeat(reverse: true);
-
-    // Getaran mesin & roda 60fps
-    _engineVibrationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 420),
+      duration: const Duration(milliseconds: 2800),
     )..repeat();
 
-    // Akselerasi maju ke depan-atas saat tombol "Commencer" ditekan
+    // Putaran roda, getaran halus suspensi mesin & aliran bayangan aspal 60fps
+    _wheelAndSuspensionController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat();
+
+    // Akselerasi maju ketika tombol "Commencer" ditekan
     _boostForwardController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 850),
+      duration: const Duration(milliseconds: 780),
     );
 
-    // Beri waktu 4 detik agar pengguna menikmati animasi motor realistis berjalan ke depan-atas
-    _autoLaunchTimer = Timer(const Duration(milliseconds: 4000), () {
+    // Transisi otomatis halus seperti di KONSEP SETELAH LOGIN.mp4
+    _autoLaunchTimer = Timer(const Duration(milliseconds: 3200), () {
       if (mounted && !_isExpandingButton) {
         _triggerLaunchTransition();
       }
@@ -66,8 +68,8 @@ class _PostLoginWelcomeScreenState extends State<PostLoginWelcomeScreen>
   @override
   void dispose() {
     _autoLaunchTimer?.cancel();
-    _driveLoopController.dispose();
-    _engineVibrationController.dispose();
+    _forwardRoadController.dispose();
+    _wheelAndSuspensionController.dispose();
     _boostForwardController.dispose();
     super.dispose();
   }
@@ -80,12 +82,12 @@ class _PostLoginWelcomeScreenState extends State<PostLoginWelcomeScreen>
     });
     _boostForwardController.forward();
 
-    await Future.delayed(const Duration(milliseconds: 380));
+    await Future.delayed(const Duration(milliseconds: 340));
     if (!mounted) return;
     setState(() {
       _showDoubleCheck = true;
     });
-    await Future.delayed(const Duration(milliseconds: 520));
+    await Future.delayed(const Duration(milliseconds: 480));
     if (!mounted) return;
     widget.onCompleted();
   }
@@ -97,49 +99,86 @@ class _PostLoginWelcomeScreenState extends State<PostLoginWelcomeScreen>
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // 1. LAYER LATAR JALAN RAYA GOLDEN HOUR 3D REALISTIS + DOLLY ZOOM MAJU
+          // ===================================================================
+          // 1. LAYER JALAN RAYA BOULEVARD DENGAN INFINITE FORWARD DOLLY-IN 3D
+          //    Menggunakan 2 layer cross-dissolve yang selalu bergerak MAJU dari
+          //    titik hilang jalan raya `Alignment(0.02, 0.04)` (00:00 -> 00:01 Video 2)
+          //    sehingga jalanan, gedung, dan pohon palem TERUS BERJALAN MAJU!
+          // ===================================================================
           AnimatedBuilder(
             animation: Listenable.merge([
-              _driveLoopController,
-              _boostForwardController,
-            ]),
-            builder: (context, child) {
-              final zoom = 1.0 +
-                  (_driveLoopController.value * 0.05) +
-                  (_boostForwardController.value * 0.08);
-              return Transform.scale(
-                scale: zoom,
-                alignment: const Alignment(0.15, -0.12),
-                child: child,
-              );
-            },
-            child: Image.asset(
-              'assets/images/boulevard_clean.jpg',
-              fit: BoxFit.cover,
-            ),
-          ),
-
-          // 2. EFEK ATMOSFER GOLDEN HOUR, MARKA JALAN MENGALIR & PEJALAN KAKI BERGERAK DI TROTOAR DEPAN
-          AnimatedBuilder(
-            animation: Listenable.merge([
-              _driveLoopController,
-              _engineVibrationController,
+              _forwardRoadController,
               _boostForwardController,
             ]),
             builder: (context, _) {
+              final p1 = _forwardRoadController.value;
+              final p2 = (p1 + 0.5) % 1.0;
+              final boost = Curves.easeInCubic.transform(
+                _boostForwardController.value,
+              );
+
+              // Skala kamera dolly-in maju dari titik hilang jalan raya
+              final scale1 = 1.00 + (p1 * 0.42) + (boost * 0.22);
+              final scale2 = 1.00 + (p2 * 0.42) + (boost * 0.22);
+
+              // Opacity cross-fade mulus agar aliran maju jalan raya tak terbatas tanpa pernah mundur
+              final alpha2 = math.sin(p1 * math.pi).clamp(0.0, 1.0);
+
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  Transform.scale(
+                    scale: scale1,
+                    alignment: const Alignment(0.02, 0.04),
+                    child: Image.asset(
+                      'assets/images/boulevard_clean.jpg',
+                      fit: BoxFit.cover,
+                      filterQuality: FilterQuality.medium,
+                    ),
+                  ),
+                  Opacity(
+                    opacity: alpha2,
+                    child: Transform.scale(
+                      scale: scale2,
+                      alignment: const Alignment(0.02, 0.04),
+                      child: Image.asset(
+                        'assets/images/boulevard_clean.jpg',
+                        fit: BoxFit.cover,
+                        filterQuality: FilterQuality.medium,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+
+          // ===================================================================
+          // 2. LAYER ALIRAN BAYANGAN POHON & TEKSTUR ASPAL 3D PERSPEKTIF (60FPS)
+          //    Membuat permukaan jalan aspal di bawah roda motor benar-benar
+          //    mengalir dari depan ke belakang secara realistis!
+          // ===================================================================
+          AnimatedBuilder(
+            animation: Listenable.merge([
+              _forwardRoadController,
+              _wheelAndSuspensionController,
+            ]),
+            builder: (context, _) {
               return CustomPaint(
-                painter: _GoldenHourRoadMotionOverlayPainter(
-                  driveProgress: _driveLoopController.value,
-                  cyclePhase: _engineVibrationController.value,
-                  boostProgress: _boostForwardController.value,
+                painter: _RealisticPerspectiveRoadSurfacePainter(
+                  roadPhase: _forwardRoadController.value,
+                  fastPhase: _wheelAndSuspensionController.value,
                 ),
                 size: Size.infinite,
               );
             },
           ),
 
-          // 3. LAYER UTAMA: KURIR MOTOR SKUTER ORANYE 3D REALISTIS TAMPAK BELAKANG
-          //    BERJALAN MAJU KE DEPAN-ATAS (KE DEPAN ATAS) MENGIKUTI LAJUR JALAN RAYA!
+          // ===================================================================
+          // 3. LAYER KURIR & MOTOR SKUTER ORANYE 3D (CHASE-CAM MENGIKUTI LAJUR)
+          //    Posisi & arah motor sejajar presisi dengan perspektif lajur jalan
+          //    di Video 2 (00:00 - 00:01) dengan bayangan matahari jatuh ke kanan!
+          // ===================================================================
           LayoutBuilder(
             builder: (context, constraints) {
               final w = constraints.maxWidth;
@@ -147,94 +186,98 @@ class _PostLoginWelcomeScreenState extends State<PostLoginWelcomeScreen>
 
               return AnimatedBuilder(
                 animation: Listenable.merge([
-                  _driveLoopController,
-                  _engineVibrationController,
+                  _forwardRoadController,
+                  _wheelAndSuspensionController,
                   _boostForwardController,
                 ]),
-                builder: (context, scooterChild) {
-                  final driveT = Curves.easeInOutSine.transform(
-                    _driveLoopController.value,
-                  );
+                builder: (context, scooterImage) {
+                  final wheelPhase = _wheelAndSuspensionController.value;
+                  final roadPhase = _forwardRoadController.value;
                   final boostT = Curves.easeInCubic.transform(
                     _boostForwardController.value,
                   );
 
-                  // Pergerakan perspektif 3D ke DEPAN-ATAS (mengikuti lengkungan jalan ke arah depan-atas)
-                  final moveForwardX = (driveT * w * 0.09) + (boostT * w * 0.16);
-                  final moveForwardUpY =
-                      -(driveT * h * 0.075) - (boostT * h * 0.16);
+                  // Goyangan mikro chase-cam yang sangat natural di dalam lajur kiri
+                  final laneWeaveX =
+                      math.sin(roadPhase * math.pi * 2) * (w * 0.012);
+                  final chaseProgressY =
+                      math.sin(roadPhase * math.pi) * (h * 0.018);
 
-                  // Getaran suspensi mesin 60fps
-                  final engineBounceY = math.sin(
-                        _engineVibrationController.value * math.pi * 2,
-                      ) *
-                      2.2;
+                  // Saat tombol Commencer ditekan, motor melesat lurus ke titik hilang jalan (x=48%, y=52%)
+                  final boostMoveX = boostT * (w * 0.14);
+                  final boostMoveUpY = boostT * (h * 0.17);
 
-                  // Skala mengecil secara perspektif saat motor semakin maju ke depan-atas jalan raya
-                  final perspectiveScale =
-                      (1.04 - (driveT * 0.18)) * (1.0 - (boostT * 0.34));
+                  // Getaran halus suspensi mesin 60fps di atas aspal
+                  final suspensionBounceY =
+                      math.sin(wheelPhase * math.pi * 4) * 1.4;
 
-                  // Sedikit miring mengikuti belokan jalan ke depan
-                  final roadBankAngle =
-                      (driveT * 0.025) + (boostT * 0.035);
+                  // Kemiringan halus mengikuti lajur jalan (sedikit menghadap ke titik hilang tengah-kiri)
+                  final steeringAngle = -0.042 +
+                      (math.sin(roadPhase * math.pi * 2) * 0.010) -
+                      (boostT * 0.015);
 
-                  final baseLeft = w * 0.05 + moveForwardX;
-                  final baseBottom = h * 0.14 - moveForwardUpY - engineBounceY;
-                  final scooterWidth = w * 0.48;
+                  // Skala perspektif saat melaju
+                  final scooterScale =
+                      (1.00 - ( math.sin(roadPhase * math.pi) * 0.04)) *
+                          (1.0 - (boostT * 0.34));
+
+                  // Efek cahaya & bayangan pohon yang melewati tubuh pengendara saat melaju
+                  final dappledLight =
+                      0.5 + 0.5 * math.sin(wheelPhase * math.pi * 2);
+
+                  final scooterWidth = w * 0.45;
                   final scooterHeight = scooterWidth * (550.0 / 315.0);
+
+                  final leftPos = w * 0.035 + laneWeaveX + boostMoveX;
+                  final bottomPos = h * 0.145 +
+                      chaseProgressY +
+                      boostMoveUpY +
+                      suspensionBounceY;
 
                   return Stack(
                     fit: StackFit.expand,
                     children: [
                       Positioned(
-                        left: baseLeft,
-                        bottom: baseBottom,
+                        left: leftPos,
+                        bottom: bottomPos,
                         width: scooterWidth,
                         height: scooterHeight,
                         child: Transform.scale(
-                          scale: perspectiveScale,
+                          scale: scooterScale,
                           alignment: Alignment.bottomCenter,
                           child: Transform.rotate(
-                            angle: roadBankAngle,
+                            angle: steeringAngle,
+                            alignment: Alignment.bottomCenter,
                             child: Stack(
                               clipBehavior: Clip.none,
                               alignment: Alignment.bottomCenter,
                               children: [
-                                // Bayangan kontak ban realistis di atas aspal jalan
+                                // A. Bayangan panjang sinar matahari Golden Hour jatuh ke kanan aspal
+                                //    + bayangan kontak ban hitam pekat tepat di bawah roda
                                 Positioned(
-                                  bottom: scooterHeight * 0.02,
-                                  left: scooterWidth * 0.08,
-                                  right: scooterWidth * 0.12,
-                                  child: Container(
-                                    height: 26,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(40),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: const Color(0xFF1A0F0A)
-                                              .withValues(alpha: 0.62),
-                                          blurRadius: 16,
-                                          spreadRadius: 2,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-
-                                // Kepulan asap knalpot halus di belakang bawah motor saat melaju ke depan-atas
-                                Positioned(
-                                  bottom: scooterHeight * 0.06,
-                                  left: scooterWidth * 0.18,
+                                  bottom: scooterHeight * 0.01,
+                                  left: scooterWidth * 0.12,
                                   child: CustomPaint(
-                                    size: const Size(60, 50),
-                                    painter: _RearExhaustSmokePainter(
-                                      phase: _engineVibrationController.value,
+                                    size: Size(
+                                      scooterWidth * 1.15,
+                                      scooterHeight * 0.22,
+                                    ),
+                                    painter: _RealisticScooterAsphaltShadowPainter(
+                                      wheelPhase: wheelPhase,
                                     ),
                                   ),
                                 ),
 
-                                // Gambar 3D Kurir & Motor Skuter Oranye Tampak Belakang
-                                scooterChild!,
+                                // B. Gambar 3D Kurir & Motor Skuter dengan modulasi cahaya matahari jalan raya
+                                ColorFiltered(
+                                  colorFilter: ColorFilter.mode(
+                                    const Color(0xFFFFE4B5).withValues(
+                                      alpha: 0.04 + (dappledLight * 0.06),
+                                    ),
+                                    BlendMode.srcATop,
+                                  ),
+                                  child: scooterImage,
+                                ),
                               ],
                             ),
                           ),
@@ -252,15 +295,18 @@ class _PostLoginWelcomeScreenState extends State<PostLoginWelcomeScreen>
             },
           ),
 
-          // 4. LOGO 3D TAS BELANJA ORANYE DI ATAS & TOMBOL SLIDER "COMMENCER" DI BAWAH (Persis Video 2 detik 00:00-00:02)
+          // ===================================================================
+          // 4. LOGO 3D TAS BELANJA ORANYE DI ATAS & TOMBOL SLIDER "COMMENCER"
+          //    (Persis Video 2 detik 00:00 - 00:02)
+          // ===================================================================
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(24, 26, 24, 24),
               child: Column(
                 children: [
                   TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0.80, end: 1.0),
-                    duration: const Duration(milliseconds: 650),
+                    tween: Tween(begin: 0.85, end: 1.0),
+                    duration: const Duration(milliseconds: 600),
                     curve: Curves.easeOutBack,
                     builder: (context, scale, child) {
                       return Transform.scale(scale: scale, child: child);
@@ -440,17 +486,17 @@ class _PostLoginWelcomeScreenState extends State<PostLoginWelcomeScreen>
   }
 }
 
-/// Overlay atmosfer Golden Hour, aliran marka jalan perspektif dari depan-atas ke bawah,
-/// dan siluet pejalan kaki di trotoar kejauhan yang bergerak halus.
-class _GoldenHourRoadMotionOverlayPainter extends CustomPainter {
-  final double driveProgress;
-  final double cyclePhase;
-  final double boostProgress;
+/// Painter Permukaan Jalan Aspal Perspektif 3D:
+/// Mengalirkan pita bayangan pepohonan & berkas sinar matahari keemasan di atas permukaan aspal
+/// dari titik hilang `(0.50*w, 0.53*h)` menuju bawah layar dengan kecepatan perspektif `1/z`
+/// sehingga aspal jalan raya benar-benar terasa bergerak cepat di bawah roda skuter!
+class _RealisticPerspectiveRoadSurfacePainter extends CustomPainter {
+  final double roadPhase;
+  final double fastPhase;
 
-  _GoldenHourRoadMotionOverlayPainter({
-    required this.driveProgress,
-    required this.cyclePhase,
-    required this.boostProgress,
+  _RealisticPerspectiveRoadSurfacePainter({
+    required this.roadPhase,
+    required this.fastPhase,
   });
 
   @override
@@ -458,99 +504,137 @@ class _GoldenHourRoadMotionOverlayPainter extends CustomPainter {
     final w = size.width;
     final h = size.height;
 
-    // 1. Sinar matahari keemasan hangat dari sela gedung kiri
-    final sunRayPaint = Paint()
-      ..shader = LinearGradient(
-        colors: [
-          const Color(0xFFFFFBEB).withValues(alpha: 0.18),
-          const Color(0xFFFDE047).withValues(alpha: 0.08),
-          Colors.transparent,
-        ],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ).createShader(Rect.fromLTWH(0, h * 0.25, w, h * 0.55));
-    final rayPath = Path()
-      ..moveTo(0, h * 0.28)
-      ..lineTo(w * 0.95, h * 0.52)
-      ..lineTo(w * 0.75, h * 0.78)
-      ..lineTo(0, h * 0.52)
+    // Trapesium area permukaan jalan aspal sesuai perspektif boulevard_clean.jpg
+    final roadPolygon = Path()
+      ..moveTo(w * 0.43, h * 0.53)
+      ..lineTo(w * 0.56, h * 0.53)
+      ..lineTo(w * 0.82, h * 1.0)
+      ..lineTo(-w * 0.15, h * 1.0)
       ..close();
-    canvas.drawPath(rayPath, sunRayPaint);
 
-    // 2. Garis aliran kecepatan halus di atas aspal (mengalir dari titik hilang depan-atas ke arah kamera)
-    //    sehingga jalan raya terasa bergerak saat motor melaju ke DEPAN-ATAS!
-    final vanishPt = Offset(w * 0.58, h * 0.56);
-    final roadStartPt = Offset(w * 0.06, h * 0.72);
-    final dashPaint = Paint()
-      ..color = const Color(0xFFFFF7ED).withValues(alpha: 0.34)
-      ..strokeCap = StrokeCap.round;
+    canvas.save();
+    canvas.clipPath(roadPolygon);
 
-    for (int i = 0; i < 4; i++) {
-      final rawT = ((i / 4.0) + cyclePhase) % 1.0;
-      final t1 = rawT * rawT;
-      final t2 = math.min(1.0, (rawT + 0.12) * (rawT + 0.12));
-      final p1 = Offset.lerp(vanishPt, roadStartPt, t1)!;
-      final p2 = Offset.lerp(vanishPt, roadStartPt, t2)!;
-      dashPaint.strokeWidth = 1.2 + 3.2 * t1;
-      canvas.drawLine(p1, p2, dashPaint);
+    final horizonY = h * 0.53;
+    final roadHeight = h - horizonY;
+
+    // 1. Pita-pita bayangan pohon palem & gedung di atas aspal yang mengalir turun secara perspektif 3D
+    for (int i = 0; i < 6; i++) {
+      final rawProgress = ((i / 6.0) + (roadPhase * 2.0)) % 1.0;
+      // Fungsi pangkat (pow 2.35) menghasilkan percepatan perspektif 3D nyata (lambat di jauh, cepat di dekat kamera)
+      final p = math.pow(rawProgress, 2.35).toDouble();
+      final yCenter = horizonY + (roadHeight * p);
+      final bandThickness = 4.0 + (38.0 * p);
+
+      // Opacity memudar lembut di kejauhan dan di tepi bawah
+      final fade = math.sin(rawProgress * math.pi).clamp(0.0, 1.0);
+      final shadowAlpha = (0.16 * fade).clamp(0.0, 0.22);
+
+      final shadowPath = Path()
+        ..moveTo(-w * 0.1, yCenter - bandThickness * 0.35)
+        ..lineTo(w * 0.85, yCenter + bandThickness * 0.25)
+        ..lineTo(w * 0.85, yCenter + bandThickness * 0.85)
+        ..lineTo(-w * 0.1, yCenter + bandThickness * 0.25)
+        ..close();
+
+      canvas.drawPath(
+        shadowPath,
+        Paint()
+          ..color = const Color(0xFF1A0E08).withValues(alpha: shadowAlpha)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8.0),
+      );
     }
 
-    // 3. Partikel cahaya keemasan (Golden Hour Dust Motes) melayang di udara
-    final motePaint = Paint()
-      ..color = const Color(0xFFFEF08A).withValues(alpha: 0.42);
-    for (int i = 0; i < 7; i++) {
-      final px = w * (0.20 + ((i * 0.11 + driveProgress * 0.08) % 0.65));
-      final py = h * (0.36 + ((i * 0.07 - cyclePhase * 0.04) % 0.38));
-      canvas.drawCircle(Offset(px, py), 1.6 + (i % 2) * 1.0, motePaint);
+    // 2. Aliran mikro tekstur aspal hangat searah lajur ban motor (halus & realistis, BUKAN garis putih!)
+    final vanishPt = Offset(w * 0.49, horizonY);
+    for (int i = 0; i < 5; i++) {
+      final laneOffset = (i - 2) * 0.14;
+      final bottomPt = Offset(w * (0.28 + laneOffset), h);
+      final rawT = ((i * 0.2) + fastPhase) % 1.0;
+      final t1 = math.pow(rawT, 2.2).toDouble();
+      final t2 = math.pow(math.min(1.0, rawT + 0.14), 2.2).toDouble();
+
+      final p1 = Offset.lerp(vanishPt, bottomPt, t1)!;
+      final p2 = Offset.lerp(vanishPt, bottomPt, t2)!;
+
+      canvas.drawLine(
+        p1,
+        p2,
+        Paint()
+          ..color = const Color(0xFFFFE4B5).withValues(alpha: 0.07 * t1)
+          ..strokeWidth = 1.0 + (2.5 * t1)
+          ..strokeCap = StrokeCap.round
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.0),
+      );
     }
 
-    // 4. Gradasi bawah lembut agar tombol "Commencer" tampil mewah & kontras
-    final bottomGradient = Paint()
+    canvas.restore();
+
+    // 3. Gradasi bawah lembut untuk kontras tombol Commencer
+    final bottomVignette = Paint()
       ..shader = LinearGradient(
         colors: [
           Colors.transparent,
-          const Color(0xFF1E110A).withValues(alpha: 0.48),
+          const Color(0xFF1A0F0A).withValues(alpha: 0.45),
         ],
-        stops: const [0.76, 1.0],
+        stops: const [0.78, 1.0],
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
       ).createShader(Rect.fromLTWH(0, 0, w, h));
-    canvas.drawRect(Rect.fromLTWH(0, 0, w, h), bottomGradient);
+    canvas.drawRect(Rect.fromLTWH(0, 0, w, h), bottomVignette);
   }
 
   @override
   bool shouldRepaint(
-    covariant _GoldenHourRoadMotionOverlayPainter oldDelegate,
-  ) {
-    return oldDelegate.driveProgress != driveProgress ||
-        oldDelegate.cyclePhase != cyclePhase ||
-        oldDelegate.boostProgress != boostProgress;
-  }
+    covariant _RealisticPerspectiveRoadSurfacePainter oldDelegate,
+  ) =>
+      oldDelegate.roadPhase != roadPhase || oldDelegate.fastPhase != fastPhase;
 }
 
-/// Kepulan asap knalpot lembut di belakang bawah motor skuter saat melaju ke depan-atas
-class _RearExhaustSmokePainter extends CustomPainter {
-  final double phase;
+/// Painter Bayangan Motor Skuter di Atas Aspal:
+/// - Bayangan kontak hitam pekat tepat di bawah ban belakang & ban depan
+/// - Bayangan panjang lembut jatuh menyerong ke kanan-bawah sesuai arah sinar matahari Golden Hour di Video 2!
+class _RealisticScooterAsphaltShadowPainter extends CustomPainter {
+  final double wheelPhase;
 
-  _RearExhaustSmokePainter({required this.phase});
+  _RealisticScooterAsphaltShadowPainter({required this.wheelPhase});
 
   @override
   void paint(Canvas canvas, Size size) {
-    for (int i = 0; i < 3; i++) {
-      final t = ((phase + i / 3.0) % 1.0);
-      final alpha = (1.0 - t) * 0.38;
-      final radius = 5.0 + t * 12.0;
-      final dx = size.width * 0.75 - (t * 24.0);
-      final dy = size.height * 0.25 + (t * 18.0);
-      canvas.drawCircle(
-        Offset(dx, dy),
-        radius,
-        Paint()..color = const Color(0xFFFFF7ED).withValues(alpha: alpha),
-      );
-    }
+    final w = size.width;
+    final h = size.height;
+
+    // 1. Bayangan jatuh memanjang ke kanan aspal (Cast Shadow dari matahari kiri)
+    final castShadowPath = Path()
+      ..moveTo(w * 0.18, h * 0.72)
+      ..quadraticBezierTo(w * 0.55, h * 0.52, w * 0.92, h * 0.68)
+      ..quadraticBezierTo(w * 0.62, h * 0.95, w * 0.16, h * 0.88)
+      ..close();
+
+    canvas.drawPath(
+      castShadowPath,
+      Paint()
+        ..color = const Color(0xFF140B06).withValues(alpha: 0.48)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10.0),
+    );
+
+    // 2. Bayangan kontak ban belakang & depan tepat menempel di aspal
+    final tireContactRect = Rect.fromCenter(
+      center: Offset(w * 0.30, h * 0.78),
+      width: w * 0.38,
+      height: h * 0.26,
+    );
+    canvas.drawOval(
+      tireContactRect,
+      Paint()
+        ..color = const Color(0xFF090503).withValues(alpha: 0.82)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5.0),
+    );
   }
 
   @override
-  bool shouldRepaint(covariant _RearExhaustSmokePainter oldDelegate) =>
-      oldDelegate.phase != phase;
+  bool shouldRepaint(
+    covariant _RealisticScooterAsphaltShadowPainter oldDelegate,
+  ) =>
+      oldDelegate.wheelPhase != wheelPhase;
 }
