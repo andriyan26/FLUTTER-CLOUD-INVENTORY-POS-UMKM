@@ -5,47 +5,59 @@ class CategoryService {
   static final List<CategoryModel> _demoCategories = [
     CategoryModel(
       id: 'cat-1',
-      name: 'Minuman & Kopi',
+      name: 'Minuman',
       createdAt: DateTime.now().subtract(const Duration(days: 30)),
     ),
     CategoryModel(
       id: 'cat-2',
-      name: 'Roti & Pastry',
+      name: 'Makanan',
       createdAt: DateTime.now().subtract(const Duration(days: 28)),
     ),
     CategoryModel(
       id: 'cat-3',
-      name: 'Kuliner & Snack',
+      name: 'Roti',
       createdAt: DateTime.now().subtract(const Duration(days: 25)),
     ),
     CategoryModel(
       id: 'cat-4',
-      name: 'Sembako UMKM',
-      createdAt: DateTime.now().subtract(const Duration(days: 20)),
+      name: 'Cemilan',
+      createdAt: DateTime.now().subtract(const Duration(days: 22)),
     ),
     CategoryModel(
       id: 'cat-5',
-      name: 'Kebutuhan Harian',
+      name: 'Sembako',
+      createdAt: DateTime.now().subtract(const Duration(days: 18)),
+    ),
+    CategoryModel(
+      id: 'cat-6',
+      name: 'Kebutuhan',
       createdAt: DateTime.now().subtract(const Duration(days: 15)),
     ),
   ];
 
-  /// Thumbnail kategori bergaya ilustrasi/foto bersih seperti di Video 2 (KONSEP SETELAH LOGIN.mp4)
+  /// Thumbnail kategori menggunakan foto produk asli dari folder Produk/
   static String getCategoryThumbnail(String categoryName) {
     final lower = categoryName.toLowerCase();
     if (lower.contains('minum') || lower.contains('kopi')) {
-      return 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=300&q=80';
+      return 'assets/produk/minuman_kopi_susu_gula_aren.jpg';
     }
-    if (lower.contains('roti') || lower.contains('pastry') || lower.contains('bakery')) {
-      return 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=300&q=80';
+    if (lower.contains('makan') || lower.contains('kuliner')) {
+      return 'assets/produk/makanan_nasi_goreng_spesial.jpg';
     }
-    if (lower.contains('kuliner') || lower.contains('snack') || lower.contains('ringan')) {
-      return 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=300&q=80';
+    if (lower.contains('roti') ||
+        lower.contains('pastry') ||
+        lower.contains('bakery')) {
+      return 'assets/produk/roti_butter_croissant.jpg';
+    }
+    if (lower.contains('cemilan') ||
+        lower.contains('snack') ||
+        lower.contains('ringan')) {
+      return 'assets/produk/cemilan_dimsum_mentai.jpg';
     }
     if (lower.contains('sembako')) {
-      return 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=300&q=80';
+      return 'assets/produk/sembako_beras_premium.jpg';
     }
-    return 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=300&q=80';
+    return 'assets/produk/kebutuhan_sabun_mandi_cair.jpg';
   }
 
   Future<List<CategoryModel>> fetchCategories() async {
@@ -62,9 +74,14 @@ class CategoryService {
     return List<CategoryModel>.from(_demoCategories);
   }
 
-  Future<CategoryModel> createCategory(String name, {required bool isAdmin}) async {
+  Future<CategoryModel> createCategory(
+    String name, {
+    required bool isAdmin,
+  }) async {
     if (!isAdmin) {
-      throw Exception('Akses ditolak: Hanya Admin yang dapat menambah kategori.');
+      throw Exception(
+        'Akses ditolak: Hanya Admin yang dapat menambah kategori.',
+      );
     }
     final cleanName = name.trim();
     if (cleanName.isEmpty) {
@@ -102,7 +119,9 @@ class CategoryService {
     required bool isAdmin,
   }) async {
     if (!isAdmin) {
-      throw Exception('Akses ditolak: Hanya Admin yang dapat mengubah kategori.');
+      throw Exception(
+        'Akses ditolak: Hanya Admin yang dapat mengubah kategori.',
+      );
     }
     final cleanName = newName.trim();
     if (cleanName.isEmpty) {
@@ -139,7 +158,9 @@ class CategoryService {
     required bool isAdmin,
   }) async {
     if (!isAdmin) {
-      throw Exception('Akses ditolak: Hanya Admin yang dapat menghapus kategori.');
+      throw Exception(
+        'Akses ditolak: Hanya Admin yang dapat menghapus kategori.',
+      );
     }
     if (linkedProductCount > 0) {
       throw Exception(

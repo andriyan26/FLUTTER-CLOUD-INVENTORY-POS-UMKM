@@ -41,6 +41,22 @@ class CustomProductImage extends StatelessWidget {
       return _buildFallback(radius);
     }
 
+    // 1. Dukungan penuh untuk Asset Lokal (mis. assets/produk/...)
+    if (trimmed.startsWith('assets/')) {
+      return ClipRRect(
+        borderRadius: radius,
+        child: Image.asset(
+          trimmed,
+          width: width,
+          height: height,
+          fit: fit,
+          filterQuality: FilterQuality.high,
+          errorBuilder: (_, __, ___) => _buildFallback(radius),
+        ),
+      );
+    }
+
+    // 2. Dukungan untuk Upload Foto Perangkat (Data URI Base64)
     final memoryBytes = tryDecodeDataUri(trimmed);
     if (memoryBytes != null) {
       return ClipRRect(
@@ -50,12 +66,13 @@ class CustomProductImage extends StatelessWidget {
           width: width,
           height: height,
           fit: fit,
-          filterQuality: FilterQuality.medium,
+          filterQuality: FilterQuality.high,
           errorBuilder: (_, __, ___) => _buildFallback(radius),
         ),
       );
     }
 
+    // 3. Dukungan untuk Gambar Network / Supabase Storage
     return ClipRRect(
       borderRadius: radius,
       child: Image.network(
@@ -152,6 +169,18 @@ class CustomAvatarImage extends StatelessWidget {
 
     if (trimmed.isEmpty) {
       return _buildInitialCircle(initial);
+    }
+
+    if (trimmed.startsWith('assets/')) {
+      return ClipOval(
+        child: Image.asset(
+          trimmed,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _buildInitialCircle(initial),
+        ),
+      );
     }
 
     final memoryBytes = CustomProductImage.tryDecodeDataUri(trimmed);

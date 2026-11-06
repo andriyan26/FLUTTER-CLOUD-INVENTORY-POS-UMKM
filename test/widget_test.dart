@@ -58,9 +58,10 @@ void main() {
       expect(cart.totalItemsCount, equals(2));
     });
 
-    test('ProductProvider menampilkan barang baru secara otomatis di urutan #1', () async {
+    test('ProductProvider memuat seluruh 60 produk dari 6 kategori folder Produk & menempatkan barang baru di urutan #1', () async {
       final provider = ProductProvider();
       await provider.loadProducts();
+      expect(provider.allProducts.length, greaterThanOrEqualTo(60));
       provider.setCategoryFilter('cat-99'); // Simulasi filter aktif sebelumnya
 
       final newProd = ProductModel(

@@ -534,7 +534,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                               final isSelected =
                                   productProvider.selectedCategoryId == catId;
                               final thumbUrl = isAll
-                                  ? 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=300&q=80'
+                                  ? 'assets/produk/makanan_burger_spesial.jpg'
                                   : CategoryService.getCategoryThumbnail(
                                       fullCatName,
                                     );

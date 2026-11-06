@@ -45,33 +45,27 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   static const List<Map<String, String>> _studioProductPhotos = [
     {
       'label': 'Kopi Susu',
-      'url':
-          'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=600&q=80',
+      'url': 'assets/produk/minuman_kopi_susu_gula_aren.jpg',
     },
     {
-      'label': 'Burger / Kuliner',
-      'url':
-          'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80',
+      'label': 'Burger Spesial',
+      'url': 'assets/produk/makanan_burger_spesial.jpg',
     },
     {
-      'label': 'Croissant / Roti',
-      'url':
-          'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=600&q=80',
+      'label': 'Croissant',
+      'url': 'assets/produk/roti_butter_croissant.jpg',
     },
     {
-      'label': 'Minuman Segar',
-      'url':
-          'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=80',
+      'label': 'Dimsum Mentai',
+      'url': 'assets/produk/cemilan_dimsum_mentai.jpg',
     },
     {
-      'label': 'Matcha Latte',
-      'url':
-          'https://images.unsplash.com/photo-1536256263959-770b48d82b0a?auto=format&fit=crop&w=600&q=80',
+      'label': 'Beras Premium',
+      'url': 'assets/produk/sembako_beras_premium.jpg',
     },
     {
-      'label': 'Paket Sembako',
-      'url':
-          'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=600&q=80',
+      'label': 'Sabun Cair',
+      'url': 'assets/produk/kebutuhan_sabun_mandi_cair.jpg',
     },
   ];
 
