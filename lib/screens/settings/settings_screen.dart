@@ -11,6 +11,7 @@ import '../../providers/product_provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/ui_frame_provider.dart';
 import '../../services/storage_service.dart';
+import 'connect_cloud_database_dialog.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -849,8 +850,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         icon: Icons.storage_rounded,
                         title: 'Database & Storage Backend',
                         value: SupabaseConfig.isConfigured
-                            ? 'Supabase PostgreSQL & Storage Live'
-                            : 'Smart Cloud Demo Mode + Direct Upload Ready',
+                            ? 'Supabase PostgreSQL Cloud Live (Aktif)'
+                            : 'Database Lokal Terintegrasi (Permanen & Aman)',
+                      ),
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (_) =>
+                                  const ConnectCloudDatabaseDialog(),
+                            );
+                          },
+                          icon: const Icon(Icons.settings_ethernet_rounded, size: 16),
+                          label: Text(
+                            SupabaseConfig.isConfigured
+                                ? 'Kelola Koneksi Cloud Supabase'
+                                : 'Hubungkan Supabase Cloud',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 11.5,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: SupabaseConfig.isConfigured
+                                ? AppColors.loginPrimaryGreen
+                                : AppColors.posOrange,
+                            side: BorderSide(
+                              color: SupabaseConfig.isConfigured
+                                  ? AppColors.loginPrimaryGreen
+                                  : AppColors.posOrange,
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
                       ),
                       const Divider(height: 18),
                       _buildStatusRow(

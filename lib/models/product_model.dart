@@ -116,5 +116,21 @@ class ProductModel {
       'images': images,
     };
   }
+
+  Map<String, dynamic> toFullMap() {
+    return {
+      'id': id,
+      'sku': sku,
+      'name': name,
+      'category_id': categoryId,
+      'category_name': categoryName,
+      'price': price,
+      'stock': stock,
+      'description': description,
+      'images': images,
+      'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt.toIso8601String(),
+    };
+  }
 }
 

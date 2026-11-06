@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../services/local_db_service.dart';
 
 class SupabaseConfig {
   SupabaseConfig._();
@@ -39,8 +40,19 @@ class SupabaseConfig {
     String? customUrl,
     String? customAnonKey,
   }) async {
-    final url = (customUrl ?? envSupabaseUrl).trim();
-    final key = (customAnonKey ?? envSupabaseAnonKey).trim();
+    String url = (customUrl ?? envSupabaseUrl).trim();
+    String key = (customAnonKey ?? envSupabaseAnonKey).trim();
+
+    // Jika environment kosong, cek apakah pengguna pernah menyimpan koneksi di aplikasi
+    if (url.isEmpty || key.isEmpty) {
+      try {
+        final saved = await LocalDbService().getCustomSupabaseCredentials();
+        if (saved['url']?.isNotEmpty == true && saved['key']?.isNotEmpty == true) {
+          url = saved['url']!.trim();
+          key = saved['key']!.trim();
+        }
+      } catch (_) {}
+    }
 
     if (url.isEmpty || key.isEmpty || !url.startsWith('https://')) {
       _isInitialized = false;
@@ -63,6 +75,49 @@ class SupabaseConfig {
     } catch (_) {
       _isInitialized = false;
     }
+  }
+
+  /// Hubungkan ke Supabase secara langsung dari UI Pengaturan
+  static Future<bool> connectCustom({
+    required String url,
+    required String anonKey,
+  }) async {
+    final cleanUrl = url.trim();
+    final cleanKey = anonKey.trim();
+
+    if (!cleanUrl.startsWith('https://') || cleanKey.length < 20) {
+      throw Exception('Format URL Supabase (https://...) atau Anon Key tidak valid.');
+    }
+
+    try {
+      await Supabase.initialize(
+        url: cleanUrl,
+        anonKey: cleanKey,
+        authOptions: const FlutterAuthClientOptions(
+          authFlowType: AuthFlowType.pkce,
+        ),
+      );
+      _activeUrl = cleanUrl;
+      _activeAnonKey = cleanKey;
+      _isInitialized = true;
+
+      await LocalDbService().saveCustomSupabaseCredentials(
+        url: cleanUrl,
+        anonKey: cleanKey,
+      );
+      return true;
+    } catch (e) {
+      _isInitialized = false;
+      throw Exception('Gagal menghubungkan ke Supabase: ${e.toString()}');
+    }
+  }
+
+  /// Putuskan koneksi Supabase dan kembali ke Database Lokal
+  static Future<void> disconnectCustom() async {
+    await LocalDbService().clearCustomSupabaseCredentials();
+    _activeUrl = envSupabaseUrl;
+    _activeAnonKey = envSupabaseAnonKey;
+    _isInitialized = false;
   }
 }
 

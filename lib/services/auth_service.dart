@@ -1,13 +1,14 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/config/supabase_config.dart';
 import '../models/user_profile.dart';
+import 'local_db_service.dart';
 
 class AuthService {
-  UserProfile? _demoSessionUser;
+  final LocalDbService _localDb = LocalDbService();
 
   bool get isDemoMode => !SupabaseConfig.isConfigured;
 
-  /// Cek session aktif (Supabase Auth atau Cloud Session yang tersimpan)
+  /// Cek session aktif (Supabase Auth atau Local Session yang tersimpan di HP/Browser)
   Future<UserProfile?> getCurrentUser() async {
     final client = SupabaseConfig.clientOrNull;
     if (client != null) {
@@ -45,10 +46,11 @@ class AuthService {
       );
     }
 
-    return _demoSessionUser;
+    return await _localDb.getActiveSession();
   }
 
   /// Login dengan Email/Username & Password yang diketik pengguna sendiri
+  /// Validasi KETAT: Jika email tidak ditemukan atau password salah, DITOLAK!
   Future<UserProfile> signIn({
     required String emailOrUsername,
     required String password,
@@ -69,7 +71,7 @@ class AuthService {
       );
       final user = response.user;
       if (user == null) {
-        throw Exception('Gagal masuk. Periksa kembali kredensial Anda.');
+        throw Exception('Gagal masuk. Periksa kembali email dan password Anda.');
       }
 
       final profileData = await client
@@ -92,47 +94,12 @@ class AuthService {
       );
     }
 
-    // Cloud Session (ketika SUPABASE_URL belum dikonfigurasi)
-    await Future.delayed(const Duration(milliseconds: 380));
-    final lower = input.toLowerCase();
-
-    // Jika sebelumnya sudah edit profil di sesi ini, pertahankan perubahannya
-    if (_demoSessionUser != null &&
-        _demoSessionUser!.email.toLowerCase() ==
-            (lower.contains('@') ? lower : '$lower@umkm.id')) {
-      return _demoSessionUser!;
-    }
-
-    final isKasir = lower.contains('kasir');
-    final normalizedEmail = lower.contains('@') ? lower : '$lower@umkm.id';
-
-    String resolvedName = 'Andriyan (Admin UMKM)';
-    if (isKasir) {
-      resolvedName = 'Siti Rahma (Kasir)';
-    } else if (!lower.contains('dailyflutterui') &&
-        !lower.contains('andriyan') &&
-        !lower.contains('admin')) {
-      final rawPrefix = input.split('@').first.replaceAll('.', ' ').trim();
-      if (rawPrefix.isNotEmpty) {
-        resolvedName =
-            '${rawPrefix[0].toUpperCase()}${rawPrefix.substring(1)} (Admin UMKM)';
-      }
-    }
-
-    _demoSessionUser = UserProfile(
-      id: isKasir ? 'cloud-kasir-002' : 'cloud-admin-001',
-      email: normalizedEmail,
-      fullName: resolvedName,
-      role: isKasir ? 'kasir' : 'admin',
-      avatarUrl:
-          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80',
-      phoneNumber: '+62 812-8899-2026',
-      storeName: 'CloudPOS • Cabang Utama UMKM',
-      storeAddress: 'Jl. Asia Afrika No. 88, Kota Bandung',
-      bio: 'Founder & Senior Store Manager CloudPOS UMKM',
-      createdAt: DateTime.now(),
+    // Database Lokal Terverifikasi: Mencocokkan akun & password yang tersimpan
+    await Future.delayed(const Duration(milliseconds: 320));
+    return await _localDb.authenticateUser(
+      emailOrUsername: input,
+      password: password,
     );
-    return _demoSessionUser!;
   }
 
   /// Update Profil Pengguna (Nama, Foto Avatar, Toko, Role, Nomor HP, Alamat)
@@ -161,12 +128,11 @@ class AuthService {
       } catch (_) {}
     }
 
-    await Future.delayed(const Duration(milliseconds: 220));
-    _demoSessionUser = updated;
+    await _localDb.updateStoredProfile(updated);
     return updated;
   }
 
-  /// Registrasi akun baru
+  /// Registrasi akun baru (Tersimpan permanen di database)
   Future<UserProfile> signUp({
     required String fullName,
     required String email,
@@ -178,6 +144,47 @@ class AuthService {
       final response = await client.auth.signUp(
         email: email.trim(),
         password: password,
+        data: {
+          'full_name': fullName.trim(),
+          'role': role,
+        },
+      );
+      final user = response.user;
+      if (user == null) {
+        throw Exception('Pendaftaran akun gagal. Silakan coba kembali.');
+      }
+
+      return UserProfile(
+        id: user.id,
+        email: email.trim(),
+        fullName: fullName.trim(),
+        role: role,
+        avatarUrl:
+            'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80',
+        createdAt: DateTime.now(),
+      );
+    }
+
+    // Simpan akun baru secara permanen di Database Lokal
+    await Future.delayed(const Duration(milliseconds: 320));
+    return await _localDb.registerUser(
+      fullName: fullName,
+      email: email,
+      password: password,
+      role: role,
+    );
+  }
+
+  /// Sign Out / Logout
+  Future<void> signOut() async {
+    final client = SupabaseConfig.clientOrNull;
+    if (client != null) {
+      try {
+        await client.auth.signOut();
+      } catch (_) {}
+    }
+    await _localDb.clearActiveSession();
+  }
         data: {
           'full_name': fullName.trim(),
           'role': role,

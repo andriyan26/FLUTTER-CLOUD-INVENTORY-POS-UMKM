@@ -1,9 +1,11 @@
 import '../core/config/supabase_config.dart';
 import '../models/cart_item_model.dart';
 import '../models/transaction_model.dart';
+import 'local_db_service.dart';
 import 'product_service.dart';
 
 class TransactionService {
+  final LocalDbService _localDb = LocalDbService();
   static final List<TransactionModel> _demoTransactions = [
     TransactionModel(
       id: 'tx-1001',
@@ -184,18 +186,26 @@ class TransactionService {
   Future<List<TransactionModel>> fetchTransactions() async {
     final client = SupabaseConfig.clientOrNull;
     if (client != null) {
-      final response = await client
-          .from('transactions')
-          .select('*, transaction_details(*)')
-          .order('created_at', ascending: false);
-      return (response as List)
-          .map((item) => TransactionModel.fromMap(item as Map<String, dynamic>))
-          .toList();
+      try {
+        final response = await client
+            .from('transactions')
+            .select('*, transaction_details(*)')
+            .order('created_at', ascending: false);
+        return (response as List)
+            .map((item) => TransactionModel.fromMap(item as Map<String, dynamic>))
+            .toList();
+      } catch (_) {}
     }
+
+    final localList = await _localDb.getTransactions();
+    if (localList.isNotEmpty) {
+      return localList;
+    }
+    // Jika belum pernah ada transaksi lokal baru, inisialisasi dengan riwayat awal
     return List<TransactionModel>.from(_demoTransactions);
   }
 
-  /// Proses Checkout dengan Atomic Stock Validation & Pengurangan Stok
+  /// Proses Checkout dengan Atomic Stock Validation & Pengurangan Stok Permanen
   Future<TransactionModel> processCheckout({
     required String customerName,
     required String paymentMethod,
@@ -250,16 +260,16 @@ class TransactionService {
       return TransactionModel.fromMap(fetched);
     }
 
-    // Validasi & Atomic Update untuk Mode Demo
-    final demoProducts = ProductService.demoProductsRef;
+    // Validasi & Simpan Permanen ke Database Lokal
+    final storedProducts = await _localDb.getProducts();
     for (final cartItem in items) {
-      final idx = demoProducts.indexWhere((p) => p.id == cartItem.product.id);
+      final idx = storedProducts.indexWhere((p) => p.id == cartItem.product.id);
       if (idx == -1) {
         throw Exception('Produk "${cartItem.product.name}" tidak ditemukan.');
       }
-      if (demoProducts[idx].stock < cartItem.quantity) {
+      if (storedProducts[idx].stock < cartItem.quantity) {
         throw Exception(
-          'Stok "${demoProducts[idx].name}" tidak mencukupi (Tersisa: ${demoProducts[idx].stock}).',
+          'Stok "${storedProducts[idx].name}" tidak mencukupi (Tersisa: ${storedProducts[idx].stock}).',
         );
       }
     }
@@ -268,22 +278,16 @@ class TransactionService {
     final List<TransactionDetailModel> details = [];
 
     for (final cartItem in items) {
-      final idx = demoProducts.indexWhere((p) => p.id == cartItem.product.id);
-      final currentProd = demoProducts[idx];
-      demoProducts[idx] = currentProd.copyWith(
-        stock: currentProd.stock - cartItem.quantity,
-        updatedAt: DateTime.now(),
-      );
-
+      final prod = cartItem.product;
       details.add(
         TransactionDetailModel(
           id: 'txd-${now.microsecondsSinceEpoch}-${details.length}',
           transactionId: txId,
-          productId: currentProd.id,
+          productId: prod.id,
           productName: cartItem.selectedVariant == 'Reguler' ||
                   cartItem.selectedVariant.isEmpty
-              ? currentProd.name
-              : '${currentProd.name} (${cartItem.selectedVariant})',
+              ? prod.name
+              : '${prod.name} (${cartItem.selectedVariant})',
           price: cartItem.unitPrice,
           quantity: cartItem.quantity,
           subtotal: cartItem.subtotal,
@@ -306,7 +310,7 @@ class TransactionService {
       details: details,
     );
 
-    _demoTransactions.insert(0, createdTx);
+    await _localDb.addTransaction(createdTx);
     return createdTx;
   }
 }

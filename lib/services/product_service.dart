@@ -1,7 +1,9 @@
 import '../core/config/supabase_config.dart';
 import '../models/product_model.dart';
+import 'local_db_service.dart';
 
 class ProductService {
+  final LocalDbService _localDb = LocalDbService();
   static final List<ProductModel> _demoProducts = [
     // =========================================================================
     // KATEGORI 1: MINUMAN (10 Produk dari folder Produk/Minuman)
@@ -873,15 +875,18 @@ class ProductService {
   Future<List<ProductModel>> fetchProducts() async {
     final client = SupabaseConfig.clientOrNull;
     if (client != null) {
-      final response = await client
-          .from('products')
-          .select('*, categories(name)')
-          .order('created_at', ascending: false);
-      return (response as List)
-          .map((item) => ProductModel.fromMap(item as Map<String, dynamic>))
-          .toList();
+      try {
+        final response = await client
+            .from('products')
+            .select('*, categories(name)')
+            .order('created_at', ascending: false);
+        return (response as List)
+            .map((item) => ProductModel.fromMap(item as Map<String, dynamic>))
+            .toList();
+      } catch (_) {}
     }
-    return List<ProductModel>.from(_demoProducts);
+    // Database Lokal Terintegrasi & Permanen
+    return await _localDb.getProducts();
   }
 
   Future<ProductModel> createProduct(
@@ -900,28 +905,20 @@ class ProductService {
 
     final client = SupabaseConfig.clientOrNull;
     if (client != null) {
-      final res = await client
-          .from('products')
-          .insert(product.toMap())
-          .select('*, categories(name)')
-          .single();
-      return ProductModel.fromMap(res);
+      try {
+        final res = await client
+            .from('products')
+            .insert(product.toMap())
+            .select('*, categories(name)')
+            .single();
+        return ProductModel.fromMap(res);
+      } catch (e) {
+        throw Exception('Gagal menyimpan ke cloud: ${e.toString()}');
+      }
     }
 
-    final duplicateSku = _demoProducts.any(
-      (p) => p.sku.toLowerCase() == product.sku.trim().toLowerCase(),
-    );
-    if (duplicateSku) {
-      throw Exception('SKU "${product.sku}" sudah digunakan produk lain.');
-    }
-
-    final created = product.copyWith(
-      id: 'prod-${DateTime.now().millisecondsSinceEpoch}',
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-    _demoProducts.insert(0, created);
-    return created;
+    // Simpan permanen ke Database Lokal
+    return await _localDb.addProduct(product);
   }
 
   Future<ProductModel> updateProduct(
@@ -940,31 +937,21 @@ class ProductService {
 
     final client = SupabaseConfig.clientOrNull;
     if (client != null) {
-      final res = await client
-          .from('products')
-          .update(product.toMap())
-          .eq('id', product.id)
-          .select('*, categories(name)')
-          .single();
-      return ProductModel.fromMap(res);
+      try {
+        final res = await client
+            .from('products')
+            .update(product.toMap())
+            .eq('id', product.id)
+            .select('*, categories(name)')
+            .single();
+        return ProductModel.fromMap(res);
+      } catch (e) {
+        throw Exception('Gagal memperbarui ke cloud: ${e.toString()}');
+      }
     }
 
-    final duplicateSku = _demoProducts.any(
-      (p) =>
-          p.id != product.id &&
-          p.sku.toLowerCase() == product.sku.trim().toLowerCase(),
-    );
-    if (duplicateSku) {
-      throw Exception('SKU "${product.sku}" sudah digunakan produk lain.');
-    }
-
-    final idx = _demoProducts.indexWhere((p) => p.id == product.id);
-    if (idx == -1) {
-      throw Exception('Produk tidak ditemukan.');
-    }
-    final updated = product.copyWith(updatedAt: DateTime.now());
-    _demoProducts[idx] = updated;
-    return updated;
+    // Update permanen ke Database Lokal
+    return await _localDb.updateProduct(product);
   }
 
   Future<void> deleteProduct(String id, {required bool isAdmin}) async {
@@ -973,9 +960,15 @@ class ProductService {
     }
     final client = SupabaseConfig.clientOrNull;
     if (client != null) {
-      await client.from('products').delete().eq('id', id);
-      return;
+      try {
+        await client.from('products').delete().eq('id', id);
+        return;
+      } catch (e) {
+        throw Exception('Gagal menghapus dari cloud: ${e.toString()}');
+      }
     }
-    _demoProducts.removeWhere((p) => p.id == id);
+
+    // Hapus permanen dari Database Lokal
+    await _localDb.deleteProduct(id);
   }
 }

@@ -1,7 +1,9 @@
 import '../core/config/supabase_config.dart';
 import '../models/category_model.dart';
+import 'local_db_service.dart';
 
 class CategoryService {
+  final LocalDbService _localDb = LocalDbService();
   static final List<CategoryModel> _demoCategories = [
     CategoryModel(
       id: 'cat-1',
@@ -63,15 +65,17 @@ class CategoryService {
   Future<List<CategoryModel>> fetchCategories() async {
     final client = SupabaseConfig.clientOrNull;
     if (client != null) {
-      final response = await client
-          .from('categories')
-          .select()
-          .order('name', ascending: true);
-      return (response as List)
-          .map((item) => CategoryModel.fromMap(item as Map<String, dynamic>))
-          .toList();
+      try {
+        final response = await client
+            .from('categories')
+            .select()
+            .order('name', ascending: true);
+        return (response as List)
+            .map((item) => CategoryModel.fromMap(item as Map<String, dynamic>))
+            .toList();
+      } catch (_) {}
     }
-    return List<CategoryModel>.from(_demoCategories);
+    return await _localDb.getCategories();
   }
 
   Future<CategoryModel> createCategory(
@@ -90,27 +94,19 @@ class CategoryService {
 
     final client = SupabaseConfig.clientOrNull;
     if (client != null) {
-      final res = await client
-          .from('categories')
-          .insert({'name': cleanName})
-          .select()
-          .single();
-      return CategoryModel.fromMap(res);
+      try {
+        final res = await client
+            .from('categories')
+            .insert({'name': cleanName})
+            .select()
+            .single();
+        return CategoryModel.fromMap(res);
+      } catch (e) {
+        throw Exception('Gagal menyimpan kategori ke cloud: ${e.toString()}');
+      }
     }
 
-    final exists = _demoCategories.any(
-      (c) => c.name.toLowerCase() == cleanName.toLowerCase(),
-    );
-    if (exists) {
-      throw Exception('Kategori "$cleanName" sudah terdaftar.');
-    }
-    final created = CategoryModel(
-      id: 'cat-${DateTime.now().millisecondsSinceEpoch}',
-      name: cleanName,
-      createdAt: DateTime.now(),
-    );
-    _demoCategories.add(created);
-    return created;
+    return await _localDb.addCategory(cleanName);
   }
 
   Future<CategoryModel> updateCategory(
@@ -130,25 +126,31 @@ class CategoryService {
 
     final client = SupabaseConfig.clientOrNull;
     if (client != null) {
-      final res = await client
-          .from('categories')
-          .update({'name': cleanName})
-          .eq('id', id)
-          .select()
-          .single();
-      return CategoryModel.fromMap(res);
+      try {
+        final res = await client
+            .from('categories')
+            .update({'name': cleanName})
+            .eq('id', id)
+            .select()
+            .single();
+        return CategoryModel.fromMap(res);
+      } catch (e) {
+        throw Exception('Gagal mengubah kategori di cloud: ${e.toString()}');
+      }
     }
 
-    final index = _demoCategories.indexWhere((c) => c.id == id);
+    final categories = await _localDb.getCategories();
+    final index = categories.indexWhere((c) => c.id == id);
     if (index == -1) {
       throw Exception('Kategori tidak ditemukan.');
     }
     final updated = CategoryModel(
       id: id,
       name: cleanName,
-      createdAt: _demoCategories[index].createdAt,
+      createdAt: categories[index].createdAt,
     );
-    _demoCategories[index] = updated;
+    categories[index] = updated;
+    await _localDb.saveAllCategories(categories);
     return updated;
   }
 
@@ -170,10 +172,14 @@ class CategoryService {
 
     final client = SupabaseConfig.clientOrNull;
     if (client != null) {
-      await client.from('categories').delete().eq('id', id);
-      return;
+      try {
+        await client.from('categories').delete().eq('id', id);
+        return;
+      } catch (e) {
+        throw Exception('Gagal menghapus kategori dari cloud: ${e.toString()}');
+      }
     }
 
-    _demoCategories.removeWhere((c) => c.id == id);
+    await _localDb.deleteCategory(id);
   }
 }

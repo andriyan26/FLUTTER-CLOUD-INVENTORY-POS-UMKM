@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_inventory_pos_umkm/core/utils/currency_formatter.dart';
 import 'package:cloud_inventory_pos_umkm/core/utils/validators.dart';
 import 'package:cloud_inventory_pos_umkm/core/widgets/custom_cached_image.dart';
@@ -11,6 +12,11 @@ import 'package:cloud_inventory_pos_umkm/services/report_service.dart';
 import 'package:cloud_inventory_pos_umkm/services/transaction_service.dart';
 
 void main() {
+  setUp(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({});
+  });
+
   group('Cloud Inventory POS UMKM — Quality Gate Tests', () {
     test('Validasi email dan password sesuai Konsep Video 1', () {
       expect(
@@ -84,6 +90,11 @@ void main() {
       expect(ok, isTrue);
       expect(provider.selectedCategoryId, equals('all'));
       expect(provider.filteredProducts.first.name, equals('Es Matcha Spesial Baru'));
+
+      // Tes penghapusan produk secara permanen
+      final deleteOk = await provider.deleteProduct(provider.filteredProducts.first.id, isAdmin: true);
+      expect(deleteOk, isTrue);
+      expect(provider.allProducts.any((p) => p.name == 'Es Matcha Spesial Baru'), isFalse);
     });
 
     test('ReportService mendeteksi produk stok menipis & membuat dokumen cetak', () async {
@@ -160,7 +171,7 @@ void main() {
       expect(decoded!.isNotEmpty, isTrue);
     });
 
-    test('AuthService mengizinkan pengguna login mandiri dengan ID & password sendiri', () async {
+    test('AuthService mengizinkan pengguna login mandiri dengan ID & password sendiri serta menolak password salah', () async {
       final authService = AuthService();
       final user = await authService.signIn(
         emailOrUsername: 'dailyflutterui@gmail.com',
@@ -168,6 +179,24 @@ void main() {
       );
       expect(user.email, equals('dailyflutterui@gmail.com'));
       expect(user.role, equals('admin'));
+
+      // Tes penolakan password salah
+      expect(
+        () async => await authService.signIn(
+          emailOrUsername: 'dailyflutterui@gmail.com',
+          password: 'passwordsalah123',
+        ),
+        throwsA(isA<Exception>()),
+      );
+
+      // Tes penolakan akun tidak dikenal
+      expect(
+        () async => await authService.signIn(
+          emailOrUsername: 'hantu@tidakada.com',
+          password: '123456',
+        ),
+        throwsA(isA<Exception>()),
+      );
     });
   });
 }

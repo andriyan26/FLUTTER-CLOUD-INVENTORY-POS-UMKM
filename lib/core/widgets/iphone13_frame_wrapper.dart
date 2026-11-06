@@ -4,6 +4,7 @@ import '../constants/app_constants.dart';
 import '../config/supabase_config.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/ui_frame_provider.dart';
+import '../../screens/settings/connect_cloud_database_dialog.dart';
 import 'cloud_pos_brand_logo.dart';
 
 class IPhone13FrameWrapper extends StatelessWidget {
@@ -87,22 +88,44 @@ class IPhone13FrameWrapper extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: isCloudLive
-                  ? const Color(0xFF065F46)
-                  : const Color(0xFF3B2F1E),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              isCloudLive ? 'Supabase Live' : 'Cloud Sync Ready',
-              style: TextStyle(
+          InkWell(
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (_) => const ConnectCloudDatabaseDialog(),
+              );
+            },
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
                 color: isCloudLive
-                    ? const Color(0xFF6EE7B7)
-                    : const Color(0xFFFBBF24),
-                fontSize: 10.5,
-                fontWeight: FontWeight.w700,
+                    ? const Color(0xFF065F46)
+                    : const Color(0xFF3B2F1E),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    isCloudLive ? 'Supabase Live' : 'Cloud Sync Ready',
+                    style: TextStyle(
+                      color: isCloudLive
+                          ? const Color(0xFF6EE7B7)
+                          : const Color(0xFFFBBF24),
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.settings_outlined,
+                    size: 11,
+                    color: isCloudLive
+                        ? const Color(0xFF6EE7B7)
+                        : const Color(0xFFFBBF24),
+                  ),
+                ],
               ),
             ),
           ),

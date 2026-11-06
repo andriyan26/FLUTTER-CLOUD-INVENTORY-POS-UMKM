@@ -96,5 +96,21 @@ class TransactionModel {
       details: parsedDetails,
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'transaction_code': transactionCode,
+      'customer_name': customerName,
+      'subtotal': subtotal,
+      'total': total,
+      'payment_method': paymentMethod,
+      'amount_paid': amountPaid,
+      'change_amount': changeAmount,
+      'user_id': userId,
+      'created_at': createdAt.toIso8601String(),
+      'transaction_details': details.map((d) => d.toMap()).toList(),
+    };
+  }
 }
 
