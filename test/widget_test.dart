@@ -6,6 +6,7 @@ import 'package:cloud_inventory_pos_umkm/models/product_model.dart';
 import 'package:cloud_inventory_pos_umkm/models/user_profile.dart';
 import 'package:cloud_inventory_pos_umkm/providers/cart_provider.dart';
 import 'package:cloud_inventory_pos_umkm/providers/product_provider.dart';
+import 'package:cloud_inventory_pos_umkm/services/auth_service.dart';
 import 'package:cloud_inventory_pos_umkm/services/report_service.dart';
 import 'package:cloud_inventory_pos_umkm/services/transaction_service.dart';
 
@@ -156,6 +157,16 @@ void main() {
       final decoded = CustomProductImage.tryDecodeDataUri(updated.avatarUrl);
       expect(decoded, isNotNull);
       expect(decoded!.isNotEmpty, isTrue);
+    });
+
+    test('AuthService mengizinkan pengguna login mandiri dengan ID & password sendiri', () async {
+      final authService = AuthService();
+      final user = await authService.signIn(
+        emailOrUsername: 'dailyflutterui@gmail.com',
+        password: '123456',
+      );
+      expect(user.email, equals('dailyflutterui@gmail.com'));
+      expect(user.role, equals('admin'));
     });
   });
 }

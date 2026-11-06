@@ -16,6 +16,7 @@ class AppRouter extends StatefulWidget {
 class _AppRouterState extends State<AppRouter> {
   bool _showSplash = true;
   bool _showPostLoginWelcome = false;
+  bool _wasAuthenticated = false;
 
   @override
   void initState() {
@@ -28,6 +29,13 @@ class _AppRouterState extends State<AppRouter> {
   @override
   Widget build(BuildContext context) {
     final isAuthenticated = context.watch<AuthProvider>().isAuthenticated;
+
+    // Jika baru saja Logout atau klik "Ulangi Animasi Login", putar kembali SplashScreen dari awal
+    if (_wasAuthenticated && !isAuthenticated) {
+      _showSplash = true;
+      _showPostLoginWelcome = false;
+    }
+    _wasAuthenticated = isAuthenticated;
 
     Widget currentScreen;
     if (_showSplash) {

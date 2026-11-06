@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
@@ -14,6 +15,7 @@ import '../../widgets/product_card.dart';
 import '../../widgets/stat_card.dart';
 import '../auth/splash_screen.dart';
 import '../categories/category_management_screen.dart';
+import '../pos/live_delivery_tracker_dialog.dart';
 import '../pos/quick_add_sheet.dart';
 import '../products/product_detail_swipe_screen.dart';
 import '../products/product_form_screen.dart';
@@ -30,10 +32,27 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen>
+    with SingleTickerProviderStateMixin {
   String _selectedChartPeriod = 'Mingguan';
   int _categoryAnimVersion = 0;
   bool _showWaveBanner = false;
+  late final AnimationController _bannerScooterController;
+
+  @override
+  void initState() {
+    super.initState();
+    _bannerScooterController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _bannerScooterController.dispose();
+    super.dispose();
+  }
 
   void _openProductSwipeDetail(ProductModel product) {
     Navigator.push(
@@ -372,14 +391,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                       const SizedBox(height: 14),
 
-                      // 3. PROMO BANNER MEWAH HIJAU (Persis KONSEP LOGIN.mp4 detik 00:15 setelah login!)
+                      // 3. PROMO BANNER MEWAH HIJAU DENGAN ANIMASI MOTOR BERJALAN & LACAK KURIR LIVE
                       SmoothStaggeredReveal(
                         index: 2,
                         child: Container(
-                          height: 108,
+                          height: 112,
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
+                            horizontal: 14,
+                            vertical: 10,
                           ),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
@@ -401,24 +420,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                           child: Row(
                             children: [
-                              const CloudPosScooterIllustration(size: 82),
-                              const SizedBox(width: 12),
+                              AnimatedBuilder(
+                                animation: _bannerScooterController,
+                                builder: (context, _) {
+                                  final bounceY = math.sin(
+                                        _bannerScooterController.value *
+                                            math.pi *
+                                            2,
+                                      ) *
+                                      -3.0;
+                                  return Transform.translate(
+                                    offset: Offset(0, bounceY),
+                                    child: CloudPosScooterIllustration(
+                                      size: 84,
+                                      wheelPhase:
+                                          _bannerScooterController.value,
+                                      showSpeedLines: true,
+                                    ),
+                                  );
+                                },
+                              ),
+                              const SizedBox(width: 10),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     const Text(
-                                      'FAST & CLOUD POS',
+                                      'FAST & CLOUD POS DELIVERY',
                                       style: TextStyle(
                                         color: Color(0xFFBEF264),
-                                        fontSize: 14.5,
+                                        fontSize: 13.5,
                                         fontWeight: FontWeight.w900,
-                                        letterSpacing: 0.4,
+                                        letterSpacing: 0.3,
                                       ),
                                     ),
                                     const Text(
-                                      'Kelola stok & transaksi kasir real-time',
+                                      'Kasir, stok & kurir skuter aktif real-time',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
@@ -427,29 +465,78 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
-                                    const SizedBox(height: 7),
-                                    GestureDetector(
-                                      onTap: () =>
-                                          widget.onSwitchTab?.call(2),
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                          vertical: 4.5,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.posOrange,
-                                          borderRadius:
-                                              BorderRadius.circular(14),
-                                        ),
-                                        child: const Text(
-                                          'BUKA KASIR SEKARANG',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 9.5,
-                                            fontWeight: FontWeight.w900,
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () =>
+                                              widget.onSwitchTab?.call(2),
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 4.5,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: AppColors.posOrange,
+                                              borderRadius:
+                                                  BorderRadius.circular(14),
+                                            ),
+                                            child: const Text(
+                                              'BUKA KASIR',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 9.5,
+                                                fontWeight: FontWeight.w900,
+                                              ),
+                                            ),
                                           ),
                                         ),
-                                      ),
+                                        const SizedBox(width: 6),
+                                        GestureDetector(
+                                          onTap: () {
+                                            showDialog(
+                                              context: context,
+                                              builder: (_) =>
+                                                  const LiveDeliveryTrackerDialog(),
+                                            );
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 9,
+                                              vertical: 4.5,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white
+                                                  .withValues(alpha: 0.18),
+                                              borderRadius:
+                                                  BorderRadius.circular(14),
+                                              border: Border.all(
+                                                color: Colors.white
+                                                    .withValues(alpha: 0.45),
+                                              ),
+                                            ),
+                                            child: const Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  Icons.location_on_rounded,
+                                                  color: Color(0xFFBEF264),
+                                                  size: 11,
+                                                ),
+                                                SizedBox(width: 3),
+                                                Text(
+                                                  'KURIR LIVE',
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 9.5,
+                                                    fontWeight: FontWeight.w900,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),

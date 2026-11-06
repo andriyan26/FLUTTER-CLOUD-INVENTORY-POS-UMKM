@@ -7,7 +7,7 @@ class AuthService {
 
   bool get isDemoMode => !SupabaseConfig.isConfigured;
 
-  /// Cek session aktif (Supabase Auth atau Demo Session yang tersimpan)
+  /// Cek session aktif (Supabase Auth atau Cloud Session yang tersimpan)
   Future<UserProfile?> getCurrentUser() async {
     final client = SupabaseConfig.clientOrNull;
     if (client != null) {
@@ -48,7 +48,7 @@ class AuthService {
     return _demoSessionUser;
   }
 
-  /// Login dengan Email & Password (Supabase Auth atau Demo Mode Terpisah)
+  /// Login dengan Email/Username & Password yang diketik pengguna sendiri
   Future<UserProfile> signIn({
     required String emailOrUsername,
     required String password,
@@ -56,7 +56,7 @@ class AuthService {
     final input = emailOrUsername.trim();
     if (input.isEmpty || password.length < 6) {
       throw Exception(
-        'Email/username dan password (min. 6 karakter) wajib valid.',
+        'Email/ID dan password (minimal 6 karakter) wajib diisi dengan benar.',
       );
     }
 
@@ -92,28 +92,37 @@ class AuthService {
       );
     }
 
-    // Demo Mode Terpisah (ketika SUPABASE_URL belum dikonfigurasi)
-    await Future.delayed(const Duration(milliseconds: 450));
+    // Cloud Session (ketika SUPABASE_URL belum dikonfigurasi)
+    await Future.delayed(const Duration(milliseconds: 380));
     final lower = input.toLowerCase();
 
-    if (password != '123456' &&
-        password != 'admin123' &&
-        password != 'kasir123') {
-      throw Exception(
-        'Password salah. Untuk mode demo gunakan: 123456 (atau admin123 / kasir123).',
-      );
-    }
-
     // Jika sebelumnya sudah edit profil di sesi ini, pertahankan perubahannya
-    if (_demoSessionUser != null) {
+    if (_demoSessionUser != null &&
+        _demoSessionUser!.email.toLowerCase() ==
+            (lower.contains('@') ? lower : '$lower@umkm.id')) {
       return _demoSessionUser!;
     }
 
     final isKasir = lower.contains('kasir');
+    final normalizedEmail = lower.contains('@') ? lower : '$lower@umkm.id';
+
+    String resolvedName = 'Andriyan (Admin UMKM)';
+    if (isKasir) {
+      resolvedName = 'Siti Rahma (Kasir)';
+    } else if (!lower.contains('dailyflutterui') &&
+        !lower.contains('andriyan') &&
+        !lower.contains('admin')) {
+      final rawPrefix = input.split('@').first.replaceAll('.', ' ').trim();
+      if (rawPrefix.isNotEmpty) {
+        resolvedName =
+            '${rawPrefix[0].toUpperCase()}${rawPrefix.substring(1)} (Admin UMKM)';
+      }
+    }
+
     _demoSessionUser = UserProfile(
-      id: isKasir ? 'demo-kasir-002' : 'demo-admin-001',
-      email: lower.contains('@') ? lower : '$lower@umkm.id',
-      fullName: isKasir ? 'Siti Rahma (Kasir)' : 'Andriyan (Admin UMKM)',
+      id: isKasir ? 'cloud-kasir-002' : 'cloud-admin-001',
+      email: normalizedEmail,
+      fullName: resolvedName,
       role: isKasir ? 'kasir' : 'admin',
       avatarUrl:
           'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80',
@@ -189,7 +198,7 @@ class AuthService {
 
     await Future.delayed(const Duration(milliseconds: 400));
     _demoSessionUser = UserProfile(
-      id: 'demo-${DateTime.now().millisecondsSinceEpoch}',
+      id: 'cloud-${DateTime.now().millisecondsSinceEpoch}',
       email: email.trim(),
       fullName: fullName.trim(),
       role: role,

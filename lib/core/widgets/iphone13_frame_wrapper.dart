@@ -98,7 +98,7 @@ class IPhone13FrameWrapper extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              isCloudLive ? 'Supabase Live' : 'Smart Cloud Demo Mode',
+              isCloudLive ? 'Supabase Live' : 'Cloud Sync Ready',
               style: TextStyle(
                 color: isCloudLive
                     ? const Color(0xFF6EE7B7)

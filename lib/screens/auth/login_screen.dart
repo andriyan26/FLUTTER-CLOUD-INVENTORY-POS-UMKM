@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -29,86 +28,65 @@ class _LoginScreenState extends State<LoginScreen>
   bool _obscurePassword = true;
   bool _keepSignedIn = true;
   bool _isRegisterMode = false;
-  bool _userInteractedManually = false;
   String? _emailLiveError;
   String? _passwordLiveError;
 
-  Timer? _autoTypeTimer;
+  late final AnimationController _scooterEnterFromRightController;
   late final AnimationController _mascotFloatController;
+  late final AnimationController _wheelSpinController;
   late final AnimationController _buttonPulseController;
+  late final Animation<Offset> _headerScooterSlide;
 
   @override
   void initState() {
     super.initState();
+
+    // Animasi motor di header atas berjalan masuk dari KANAN ke posisinya (Persis KONSEP LOGIN.mp4 detik 00:05 - 00:07)
+    _scooterEnterFromRightController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1050),
+    );
+
+    _headerScooterSlide = Tween<Offset>(
+      begin: const Offset(1.85, 0.0),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _scooterEnterFromRightController,
+        curve: Curves.easeOutBack,
+      ),
+    );
+
     _mascotFloatController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1400),
     )..repeat(reverse: true);
+
+    _wheelSpinController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 520),
+    )..repeat();
 
     _buttonPulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
-      lowerBound: 0.98,
-      upperBound: 1.02,
+      lowerBound: 0.985,
+      upperBound: 1.015,
     )..repeat(reverse: true);
 
-    // Jalankan animasi pengetikan halus otomatis seperti di KONSEP LOGIN.mp4 (00:07 - 00:13)
-    Future.delayed(const Duration(milliseconds: 850), () {
-      if (mounted && !_userInteractedManually) {
-        _startSmoothAutoTypingDemo();
+    // Mulai jalankan motor dari kanan ke posisinya sesaat setelah header muncul
+    Future.delayed(const Duration(milliseconds: 140), () {
+      if (mounted) {
+        _scooterEnterFromRightController.forward();
       }
     });
-  }
-
-  void _startSmoothAutoTypingDemo() {
-    const targetEmail = 'dailyflutterui@gmail.com';
-    const targetPass = '123456';
-    int emailIdx = 0;
-    int passIdx = 0;
-
-    _autoTypeTimer = Timer.periodic(const Duration(milliseconds: 48), (timer) {
-      if (!mounted || _userInteractedManually) {
-        timer.cancel();
-        return;
-      }
-
-      if (emailIdx < targetEmail.length) {
-        emailIdx++;
-        final sub = targetEmail.substring(0, emailIdx);
-        _emailController.value = TextEditingValue(
-          text: sub,
-          selection: TextSelection.collapsed(offset: sub.length),
-        );
-        setState(() {
-          _emailLiveError = Validators.validateEmailOrUsername(sub);
-        });
-      } else if (passIdx < targetPass.length) {
-        passIdx++;
-        final subPass = targetPass.substring(0, passIdx);
-        _passwordController.value = TextEditingValue(
-          text: subPass,
-          selection: TextSelection.collapsed(offset: subPass.length),
-        );
-        setState(() {
-          _passwordLiveError = Validators.validatePassword(subPass);
-        });
-      } else {
-        timer.cancel();
-      }
-    });
-  }
-
-  void _stopAutoTypeOnUserTouch() {
-    if (!_userInteractedManually) {
-      _userInteractedManually = true;
-      _autoTypeTimer?.cancel();
-    }
   }
 
   @override
   void dispose() {
-    _autoTypeTimer?.cancel();
+    _scooterEnterFromRightController.dispose();
     _mascotFloatController.dispose();
+    _wheelSpinController.dispose();
     _buttonPulseController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -117,28 +95,20 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   void _onEmailChanged(String value) {
-    _stopAutoTypeOnUserTouch();
     setState(() {
-      _emailLiveError = Validators.validateEmailOrUsername(value);
+      _emailLiveError =
+          value.isEmpty ? null : Validators.validateEmailOrUsername(value);
     });
   }
 
   void _onPasswordChanged(String value) {
-    _stopAutoTypeOnUserTouch();
     setState(() {
-      _passwordLiveError = Validators.validatePassword(value);
+      _passwordLiveError =
+          value.isEmpty ? null : Validators.validatePassword(value);
     });
   }
 
   Future<void> _submitAuth() async {
-    _stopAutoTypeOnUserTouch();
-    if (_emailController.text.trim().isEmpty) {
-      _emailController.text = 'dailyflutterui@gmail.com';
-    }
-    if (_passwordController.text.isEmpty) {
-      _passwordController.text = '123456';
-    }
-
     final emailErr = Validators.validateEmailOrUsername(_emailController.text);
     final passErr = Validators.validatePassword(_passwordController.text);
 
@@ -174,16 +144,23 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
-  void _fillDemoCredentials({required bool asAdmin}) {
-    _stopAutoTypeOnUserTouch();
-    setState(() {
-      _isRegisterMode = false;
-      _emailController.text =
-          asAdmin ? 'dailyflutterui@gmail.com' : 'kasir@umkm.id';
-      _passwordController.text = '123456';
-      _emailLiveError = null;
-      _passwordLiveError = null;
-    });
+  Future<void> _handleSocialQuickSignIn({required String providerName}) async {
+    final authProvider = context.read<AuthProvider>();
+    final email = _emailController.text.trim().isNotEmpty
+        ? _emailController.text.trim()
+        : 'dailyflutterui@gmail.com';
+    final pass = _passwordController.text.length >= 6
+        ? _passwordController.text
+        : '123456';
+
+    final success = await authProvider.signIn(
+      emailOrUsername: email,
+      password: pass,
+    );
+    if (!mounted) return;
+    if (success) {
+      widget.onLoginSuccess?.call();
+    }
   }
 
   @override
@@ -199,64 +176,40 @@ class _LoginScreenState extends State<LoginScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // 1. HEADER HIJAU MEWAH DENGAN TRANSISI PERLAHAN & MASKOT SKUTER
+            // 1. HEADER HIJAU MEWAH DENGAN MOTOR BERJALAN DARI KANAN KE POSISINYA
             SmoothStaggeredReveal(
               index: 0,
-              beginOffset: const Offset(0, -0.25),
-              duration: const Duration(milliseconds: 780),
+              beginOffset: const Offset(0, -0.22),
+              duration: const Duration(milliseconds: 680),
               child: _buildHeroHeader(),
             ),
 
-            // 2. FORM CONTAINER PUTIH DENGAN KEMUNCULAN DATA SECARA PERLAHAN (STAGGERED SMOOTH)
+            // 2. FORM CONTAINER PUTIH BERSIH TANPA KETERANGAN AKUN DEMO (Persis KONSEP LOGIN.mp4)
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 26),
+              padding: const EdgeInsets.fromLTRB(24, 22, 24, 26),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SmoothStaggeredReveal(
                     index: 1,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          _isRegisterMode ? 'Create Account' : 'Welcome Back',
-                          style: const TextStyle(
-                            fontSize: 27,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.textDarkSlate,
-                            letterSpacing: -0.7,
-                          ),
-                        ),
-                        Row(
-                          children: [
-                            _buildMiniRoleChip(
-                              label: 'Admin',
-                              active: !_emailController.text
-                                  .toLowerCase()
-                                  .contains('kasir'),
-                              onTap: () => _fillDemoCredentials(asAdmin: true),
-                            ),
-                            const SizedBox(width: 5),
-                            _buildMiniRoleChip(
-                              label: 'Kasir',
-                              active: _emailController.text
-                                  .toLowerCase()
-                                  .contains('kasir'),
-                              onTap: () => _fillDemoCredentials(asAdmin: false),
-                            ),
-                          ],
-                        ),
-                      ],
+                    child: Text(
+                      _isRegisterMode ? 'Create Account' : 'Welcome Back',
+                      style: const TextStyle(
+                        fontSize: 27,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.textDarkSlate,
+                        letterSpacing: -0.7,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 18),
 
                   if (_isRegisterMode) ...[
                     SmoothStaggeredReveal(
                       index: 2,
                       child: _buildRoundedInputField(
                         controller: _nameController,
-                        hintText: 'Nama Lengkap / Nama Toko UMKM',
+                        hintText: 'Full Name / Store Name',
                         icon: Icons.storefront_outlined,
                         borderColor: AppColors.borderLight,
                       ),
@@ -264,7 +217,7 @@ class _LoginScreenState extends State<LoginScreen>
                     const SizedBox(height: 12),
                   ],
 
-                  // Input Email or Phone + Validasi Real-Time Halus
+                  // Input Email or Phone + Validasi Real-Time Halus (Persis KONSEP LOGIN.mp4)
                   SmoothStaggeredReveal(
                     index: 2,
                     child: Column(
@@ -282,7 +235,7 @@ class _LoginScreenState extends State<LoginScreen>
                                   : AppColors.borderLight),
                         ),
                         AnimatedSize(
-                          duration: const Duration(milliseconds: 240),
+                          duration: const Duration(milliseconds: 220),
                           curve: Curves.easeOutCubic,
                           child: _emailLiveError != null
                               ? Padding(
@@ -303,7 +256,7 @@ class _LoginScreenState extends State<LoginScreen>
                     ),
                   ),
 
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
 
                   // Input Password + Toggle Visibility
                   SmoothStaggeredReveal(
@@ -317,6 +270,7 @@ class _LoginScreenState extends State<LoginScreen>
                           icon: Icons.lock_outline_rounded,
                           obscureText: _obscurePassword,
                           onChanged: _onPasswordChanged,
+                          onSubmitted: (_) => _submitAuth(),
                           borderColor: _passwordLiveError != null
                               ? AppColors.errorRed
                               : (_passwordController.text.length >= 6
@@ -435,7 +389,16 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                         TextButton(
                           onPressed: () {
-                            _fillDemoCredentials(asAdmin: true);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                behavior: SnackBarBehavior.floating,
+                                backgroundColor: AppColors.loginPrimaryGreen,
+                                content: Text(
+                                  'Silakan masukkan email & password Anda untuk masuk.',
+                                  style: TextStyle(fontWeight: FontWeight.w700),
+                                ),
+                              ),
+                            );
                           },
                           style: TextButton.styleFrom(
                             padding: EdgeInsets.zero,
@@ -537,10 +500,9 @@ class _LoginScreenState extends State<LoginScreen>
                                 label: 'Google',
                                 icon: Icons.g_mobiledata_rounded,
                                 iconColor: const Color(0xFFEA4335),
-                                onTap: () {
-                                  _fillDemoCredentials(asAdmin: true);
-                                  _submitAuth();
-                                },
+                                onTap: () => _handleSocialQuickSignIn(
+                                  providerName: 'Google',
+                                ),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -549,10 +511,9 @@ class _LoginScreenState extends State<LoginScreen>
                                 label: 'Apple',
                                 icon: Icons.apple_rounded,
                                 iconColor: Colors.black,
-                                onTap: () {
-                                  _fillDemoCredentials(asAdmin: false);
-                                  _submitAuth();
-                                },
+                                onTap: () => _handleSocialQuickSignIn(
+                                  providerName: 'Apple',
+                                ),
                               ),
                             ),
                           ],
@@ -603,130 +564,121 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Widget _buildHeroHeader() {
-    return Container(
-      height: 242,
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Color(0xFF234A10),
-            Color(0xFF3E7622),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(32),
-          bottomRight: Radius.circular(32),
-        ),
+    return ClipRRect(
+      borderRadius: const BorderRadius.only(
+        bottomLeft: Radius.circular(32),
+        bottomRight: Radius.circular(32),
       ),
-      child: Stack(
-        children: [
-          Positioned(
-            right: -18,
-            top: 24,
-            child: Container(
-              width: 170,
-              height: 170,
-              decoration: BoxDecoration(
-                color: const Color(0xFFA3E635).withValues(alpha: 0.14),
-                shape: BoxShape.circle,
+      child: Container(
+        height: 242,
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color(0xFF234A10),
+              Color(0xFF3E7622),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              right: -18,
+              top: 24,
+              child: Container(
+                width: 170,
+                height: 170,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFA3E635).withValues(alpha: 0.14),
+                  shape: BoxShape.circle,
+                ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 42, 16, 18),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Kiri: Brand Aplikasi Kita "CloudPOS."
-                Expanded(
-                  flex: 6,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      RichText(
-                        text: const TextSpan(
-                          style: TextStyle(
-                            fontSize: 31,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: -0.9,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 42, 14, 18),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Kiri: Brand Aplikasi Kita "CloudPOS."
+                  Expanded(
+                    flex: 6,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        RichText(
+                          text: const TextSpan(
+                            style: TextStyle(
+                              fontSize: 31,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.9,
+                            ),
+                            children: [
+                              TextSpan(
+                                text: 'Cloud',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              TextSpan(
+                                text: 'POS.',
+                                style: TextStyle(color: Color(0xFFA3E635)),
+                              ),
+                            ],
                           ),
-                          children: [
-                            TextSpan(
-                              text: 'Cloud',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            TextSpan(
-                              text: 'POS.',
-                              style: TextStyle(color: Color(0xFFA3E635)),
-                            ),
-                          ],
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Kelola stok & kasir UMKM,\nlangsung di pintu toko Anda.',
-                        style: TextStyle(
-                          color: Color(0xF0FFFFFF),
-                          fontSize: 13,
-                          height: 1.4,
-                          fontWeight: FontWeight.w500,
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Smart inventory, delivered fast,\nright to your store door.',
+                          style: TextStyle(
+                            color: Color(0xF0FFFFFF),
+                            fontSize: 13,
+                            height: 1.4,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Kanan: Ilustrasi Vektor Kurir Skuter Hijau Melayang Halus
-                Expanded(
-                  flex: 5,
-                  child: AnimatedBuilder(
-                    animation: _mascotFloatController,
-                    builder: (context, child) {
-                      final dy = math.sin(
-                            _mascotFloatController.value * math.pi,
-                          ) *
-                          -5.0;
-                      return Transform.translate(
-                        offset: Offset(0, dy),
-                        child: child,
-                      );
-                    },
-                    child: const Center(
-                      child: CloudPosScooterIllustration(size: 138),
+                      ],
                     ),
                   ),
-                ),
-              ],
+                  // Kanan: Motor Kurir Hijau Berjalan Masuk dari KANAN ke Posisinya Menghadap Kiri (Persis KONSEP LOGIN.mp4 detik 00:05-00:07)
+                  Expanded(
+                    flex: 5,
+                    child: SlideTransition(
+                      position: _headerScooterSlide,
+                      child: AnimatedBuilder(
+                        animation: Listenable.merge([
+                          _mascotFloatController,
+                          _wheelSpinController,
+                          _scooterEnterFromRightController,
+                        ]),
+                        builder: (context, _) {
+                          final isDrivingIn =
+                              _scooterEnterFromRightController.value < 0.96;
+                          final dy = math.sin(
+                                _mascotFloatController.value * math.pi,
+                              ) *
+                              -4.5;
+                          return Transform.translate(
+                            offset: Offset(0, dy),
+                            child: Center(
+                              child: CloudPosScooterIllustration(
+                                size: 138,
+                                flipHorizontal: true,
+                                wheelPhase: isDrivingIn
+                                    ? _wheelSpinController.value
+                                    : _mascotFloatController.value * 0.25,
+                                showSpeedLines: isDrivingIn,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMiniRoleChip({
-    required String label,
-    required bool active,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color: active ? AppColors.loginPrimaryGreen : AppColors.loginSoftMint,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w800,
-            color: active ? Colors.white : AppColors.loginHeaderDarkGreen,
-          ),
+          ],
         ),
       ),
     );
@@ -739,6 +691,7 @@ class _LoginScreenState extends State<LoginScreen>
     required Color borderColor,
     bool obscureText = false,
     ValueChanged<String>? onChanged,
+    ValueChanged<String>? onSubmitted,
     Widget? suffixIcon,
   }) {
     return AnimatedContainer(
@@ -758,8 +711,8 @@ class _LoginScreenState extends State<LoginScreen>
       child: TextField(
         controller: controller,
         obscureText: obscureText,
-        onTap: _stopAutoTypeOnUserTouch,
         onChanged: onChanged,
+        onSubmitted: onSubmitted,
         style: const TextStyle(
           fontSize: 14,
           color: AppColors.textDarkSlate,
@@ -800,7 +753,7 @@ class _LoginScreenState extends State<LoginScreen>
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: AppColors.borderLight, width: 1.3),
+          border: Border.all(color: AppColors.borderLight, width: 1.4),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -810,7 +763,7 @@ class _LoginScreenState extends State<LoginScreen>
             Text(
               label,
               style: const TextStyle(
-                fontSize: 13.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w700,
                 color: AppColors.textDarkSlate,
               ),

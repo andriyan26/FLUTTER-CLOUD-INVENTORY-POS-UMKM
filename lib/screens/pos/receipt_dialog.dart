@@ -6,6 +6,7 @@ import '../../core/utils/currency_formatter.dart';
 import '../../core/utils/print_helper.dart';
 import '../../models/transaction_model.dart';
 import '../../providers/auth_provider.dart';
+import 'live_delivery_tracker_dialog.dart';
 
 class ReceiptDialog extends StatefulWidget {
   final TransactionModel transaction;
@@ -730,6 +731,41 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                           ),
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 6),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 36,
+                      child: TextButton.icon(
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (_) => LiveDeliveryTrackerDialog(
+                              transactionCode: tx.transactionCode,
+                              customerName: tx.customerName,
+                            ),
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                          backgroundColor: AppColors.posOrangeLight,
+                          foregroundColor: AppColors.posOrangeDark,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                        ),
+                        icon: const Icon(
+                          Icons.delivery_dining_rounded,
+                          size: 16,
+                          color: AppColors.posOrange,
+                        ),
+                        label: const Text(
+                          'Suivre ma livraison • Lacak Kurir Motor (Live)',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
