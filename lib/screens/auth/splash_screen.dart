@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/cloud_pos_brand_logo.dart';
 
 class SplashScreen extends StatefulWidget {
   final VoidCallback onFinished;
@@ -253,26 +254,39 @@ class _SplashScreenState extends State<SplashScreen>
                   position: _textSlide,
                   child: Column(
                     children: [
-                      RichText(
-                        text: const TextSpan(
-                          style: TextStyle(
-                            fontSize: 40,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: -1.2,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const CloudPosEmblemIcon(
+                            size: 46,
+                            showBadge: true,
+                            animatePulse: true,
                           ),
-                          children: [
-                            TextSpan(
-                              text: 'Cloud',
-                              style: TextStyle(color: AppColors.textDarkSlate),
-                            ),
-                            TextSpan(
-                              text: 'POS.',
+                          const SizedBox(width: 12),
+                          RichText(
+                            text: const TextSpan(
                               style: TextStyle(
-                                color: AppColors.loginPrimaryGreen,
+                                fontSize: 40,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -1.2,
                               ),
+                              children: [
+                                TextSpan(
+                                  text: 'Cloud',
+                                  style: TextStyle(
+                                    color: AppColors.textDarkSlate,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: 'POS.',
+                                  style: TextStyle(
+                                    color: AppColors.loginPrimaryGreen,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 8),
                       const Text(

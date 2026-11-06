@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/validators.dart';
+import '../../core/widgets/cloud_pos_brand_logo.dart';
 import '../../core/widgets/smooth_staggered_reveal.dart';
 import '../../providers/auth_provider.dart';
 import 'splash_screen.dart';
@@ -601,33 +602,46 @@ class _LoginScreenState extends State<LoginScreen>
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Kiri: Brand Aplikasi Kita "CloudPOS."
+                  // Kiri: Brand Aplikasi Kita "CloudPOS." + Logo Ikonik
                   Expanded(
                     flex: 6,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        RichText(
-                          text: const TextSpan(
-                            style: TextStyle(
-                              fontSize: 31,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -0.9,
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const CloudPosEmblemIcon(
+                              size: 38,
+                              showBadge: true,
+                              animatePulse: true,
                             ),
-                            children: [
-                              TextSpan(
-                                text: 'Cloud',
-                                style: TextStyle(color: Colors.white),
+                            const SizedBox(width: 10),
+                            Flexible(
+                              child: RichText(
+                                text: const TextSpan(
+                                  style: TextStyle(
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: -0.9,
+                                  ),
+                                  children: [
+                                    TextSpan(
+                                      text: 'Cloud',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                    TextSpan(
+                                      text: 'POS.',
+                                      style: TextStyle(color: Color(0xFFA3E635)),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              TextSpan(
-                                text: 'POS.',
-                                style: TextStyle(color: Color(0xFFA3E635)),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
                         const Text(
                           'Smart inventory, delivered fast,\nright to your store door.',
                           style: TextStyle(

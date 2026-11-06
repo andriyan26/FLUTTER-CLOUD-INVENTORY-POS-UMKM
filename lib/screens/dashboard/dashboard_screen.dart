@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/currency_formatter.dart';
+import '../../core/widgets/cloud_pos_brand_logo.dart';
 import '../../core/widgets/custom_cached_image.dart';
 import '../../core/widgets/smooth_staggered_reveal.dart';
 import '../../models/product_model.dart';
@@ -236,6 +237,49 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 ),
                               ),
                             ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 9,
+                                vertical: 5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: AppColors.posOrange.withValues(
+                                    alpha: 0.25,
+                                  ),
+                                ),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(0x14F05A28),
+                                    blurRadius: 10,
+                                    offset: Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  CloudPosEmblemIcon(
+                                    size: 24,
+                                    animate: true,
+                                    showCrownBadge: false,
+                                  ),
+                                  SizedBox(width: 6),
+                                  Text(
+                                    'CloudPOS',
+                                    style: TextStyle(
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w900,
+                                      color: AppColors.posOrange,
+                                      letterSpacing: -0.3,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
                             Container(
                               width: 38,
                               height: 38,

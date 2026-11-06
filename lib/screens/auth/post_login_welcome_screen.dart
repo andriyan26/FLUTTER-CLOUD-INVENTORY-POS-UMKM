@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import '../../core/theme/app_colors.dart';
+import '../../core/widgets/cloud_pos_brand_logo.dart';
 
 /// Layar Transisi Animasi Setelah Login Persis VIDEO 2 (KONSEP SETELAH LOGIN.mp4 detik 00:00 - 00:02)
 /// Menggunakan Kamera Chase-Cam 3D Realistis 60fps (Unidirectional Forward Motion — Tidak Pernah Mundur):
@@ -311,57 +311,15 @@ class _PostLoginWelcomeScreenState extends State<PostLoginWelcomeScreen>
                     builder: (context, scale, child) {
                       return Transform.scale(scale: scale, child: child);
                     },
-                    child: Column(
+                    child: const Column(
                       children: [
-                        Container(
-                          width: 72,
-                          height: 72,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [
-                                Color(0xFFFF7844),
-                                Color(0xFFE84118),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(24),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Color(0x66F05A28),
-                                blurRadius: 22,
-                                offset: Offset(0, 10),
-                              ),
-                            ],
-                          ),
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              const Icon(
-                                Icons.shopping_bag_rounded,
-                                size: 42,
-                                color: Colors.white,
-                              ),
-                              Positioned(
-                                bottom: 14,
-                                child: Container(
-                                  padding: const EdgeInsets.all(2),
-                                  decoration: const BoxDecoration(
-                                    color: Colors.white,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.sentiment_satisfied_alt_rounded,
-                                    size: 12,
-                                    color: AppColors.posOrange,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                        CloudPosEmblemIcon(
+                          size: 76,
+                          animate: true,
+                          showCrownBadge: true,
                         ),
-                        const SizedBox(height: 6),
-                        const Text(
+                        SizedBox(height: 8),
+                        Text(
                           'CloudPOS',
                           style: TextStyle(
                             fontSize: 30,

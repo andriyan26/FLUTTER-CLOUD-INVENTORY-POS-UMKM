@@ -4,6 +4,7 @@ import '../constants/app_constants.dart';
 import '../config/supabase_config.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/ui_frame_provider.dart';
+import 'cloud_pos_brand_logo.dart';
 
 class IPhone13FrameWrapper extends StatelessWidget {
   final Widget child;
@@ -71,15 +72,12 @@ class IPhone13FrameWrapper extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            width: 10,
-            height: 10,
-            decoration: const BoxDecoration(
-              color: Color(0xFF4ADE80),
-              shape: BoxShape.circle,
-            ),
+          const CloudPosEmblemIcon(
+            size: 27,
+            showBadge: true,
+            animatePulse: false,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 9),
           const Text(
             'CloudPOS • UMKM Studio',
             style: TextStyle(

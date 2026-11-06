@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/currency_formatter.dart';
+import '../../core/widgets/cloud_pos_brand_logo.dart';
 import '../../core/widgets/custom_cached_image.dart';
 import '../../models/product_model.dart';
 import '../../providers/auth_provider.dart';
@@ -10,16 +11,14 @@ import '../../providers/cart_provider.dart';
 import '../../providers/product_provider.dart';
 import 'product_form_screen.dart';
 
-/// Halaman Detail Produk Interaktif 3D Studio Cutout & Swipe Carousel
+/// Halaman Detail Produk Interaktif 3D Luxury Studio Medallion & 3D Coverflow Swipe
 /// Mengikuti secara presisi VIDEO 3 (KONSEP LIHAT DETAIL BARANG.mp4 detik 00:00 - 00:21):
-/// - Produk tampil dengan Background Terhapus (3D Studio Cutout PNG `assets/produk_cutout/*.png`)
-///   melayang di atas pedestal lingkaran cahaya (radial halo spotlight) + bayangan lantai 3D.
-/// - Dilengkapi ANIMASI 60FPS DI ATAS PRODUK: kepulan uap/aroma hangat S-curve yang naik perlahan,
-///   kilau partikel bintang keemasan (golden sparkles), dan cincin orbit cahaya berputar.
-/// - Carousel 3D Parallax (`viewportFraction: 0.78`) di mana produk sebelah kiri/kanan mengintip
-///   dan membesar secara mulus saat di-swipe.
-/// - Interaksi tombol ukuran `Small`, `Medium`, `Large` yang mengubah skala 3D produk
-///   (`0.84x`, `1.00x`, `1.15x`) serta harga secara real-time.
+/// - Gambar produk 100% UTUH, TAJAM & JERNIH (`assets/produk/*.jpg`) tanpa ada bagian yang hilang/geripis,
+///   dibingkai dalam "3D Floating Luxury Studio Medallion" berlapis kaca specular + cincin emas berputar.
+/// - Animasi 3D Coverflow Perspective (`Matrix4.rotateY`) saat di-swipe ke kiri/kanan.
+/// - Animasi Cincin Orbit Kembar + Partikel Bintang Emas di sekeliling luar pedestal (tidak menutupi foto produk).
+/// - Interaksi tombol ukuran `Small`, `Medium`, `Large` dengan efek gelombang kejut (shockwave ring)
+///   dan perubahan skala 3D (`0.85x`, `1.00x`, `1.14x`) serta harga secara real-time.
 class ProductDetailSwipeScreen extends StatefulWidget {
   final ProductModel initialProduct;
 
@@ -36,8 +35,9 @@ class ProductDetailSwipeScreen extends StatefulWidget {
 class _ProductDetailSwipeScreenState extends State<ProductDetailSwipeScreen>
     with TickerProviderStateMixin {
   late PageController _pageController;
-  late final AnimationController _ambientController;
+  late final AnimationController _orbitAndFloatController;
   late final AnimationController _pulseController;
+  late final AnimationController _sizePulseWaveController;
 
   double _currentPageValue = 0.0;
   int _currentIndex = 0;
@@ -63,27 +63,32 @@ class _ProductDetailSwipeScreenState extends State<ProductDetailSwipeScreen>
 
     _pageController = PageController(
       initialPage: _currentIndex,
-      viewportFraction: 0.78,
+      viewportFraction: 0.76,
     )..addListener(_onPageScroll);
 
-    // Controller 60fps untuk uap aroma di atas produk, partikel kilau & levitasi 3D
-    _ambientController = AnimationController(
+    // Controller 60fps untuk cincin orbit kembar, levitasi 3D & kilau kaca medali
+    _orbitAndFloatController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 5200),
+      duration: const Duration(milliseconds: 6400),
     )..repeat();
 
-    // Controller denyut halo spotlight & bayangan lantai 3D
+    // Controller denyut lembut halo spotlight di belakang produk
     _pulseController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2400),
+      duration: const Duration(milliseconds: 2200),
     )..repeat(reverse: true);
+
+    // Controller gelombang kejut (shockwave ring) saat ukuran Small/Medium/Large dipilih
+    _sizePulseWaveController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 650),
+    );
   }
 
   void _onPageScroll() {
     if (!mounted || !_pageController.hasClients) return;
     setState(() {
-      _currentPageValue =
-          _pageController.page ?? _currentIndex.toDouble();
+      _currentPageValue = _pageController.page ?? _currentIndex.toDouble();
     });
   }
 
@@ -91,8 +96,9 @@ class _ProductDetailSwipeScreenState extends State<ProductDetailSwipeScreen>
   void dispose() {
     _pageController.removeListener(_onPageScroll);
     _pageController.dispose();
-    _ambientController.dispose();
+    _orbitAndFloatController.dispose();
     _pulseController.dispose();
+    _sizePulseWaveController.dispose();
     super.dispose();
   }
 
@@ -125,6 +131,7 @@ class _ProductDetailSwipeScreenState extends State<ProductDetailSwipeScreen>
     if (_pageController.hasClients) {
       _pageController.jumpToPage(0);
     }
+    _sizePulseWaveController.forward(from: 0.0);
   }
 
   int _calculateDynamicPrice(int basePrice) {
@@ -139,24 +146,12 @@ class _ProductDetailSwipeScreenState extends State<ProductDetailSwipeScreen>
   double _getSizeScaleFactor() {
     switch (_selectedSize) {
       case 'Small':
-        return 0.84;
+        return 0.85;
       case 'Large':
-        return 1.15;
+        return 1.14;
       default:
         return 1.00;
     }
-  }
-
-  /// Resolusi otomatis dari `assets/produk/xxx.jpg` ke `assets/produk_cutout/xxx.png`
-  /// sehingga gambar produk tampil tanpa background kotak (3D Studio Cutout)
-  String _resolveCutoutAssetPath(String rawPath) {
-    final trimmed = rawPath.trim();
-    if (trimmed.startsWith('assets/produk/') && trimmed.endsWith('.jpg')) {
-      final fileName = trimmed.substring('assets/produk/'.length);
-      final baseName = fileName.substring(0, fileName.length - 4);
-      return 'assets/produk_cutout/$baseName.png';
-    }
-    return trimmed;
   }
 
   /// Palet warna studio spotlight dinamis berdasarkan kategori produk
@@ -165,35 +160,32 @@ class _ProductDetailSwipeScreenState extends State<ProductDetailSwipeScreen>
     if (lower.contains('minum') || lower.contains('kopi')) {
       return const _StudioPalette(
         bgTop: Color(0xFF23120B),
-        bgCenter: Color(0xFF4A2511),
-        bgBottom: Color(0xFF140A06),
-        haloPrimary: Color(0xFFD97736),
-        haloSecondary: Color(0xFFF59E0B),
-        accentButton: Color(0xFFE07A38),
-        steamColor: Color(0xFFFFEDD5),
-        hasWarmSteam: true,
+        bgCenter: Color(0xFF4E2712),
+        bgBottom: Color(0xFF120905),
+        haloPrimary: Color(0xFFE07A38),
+        haloSecondary: Color(0xFFFBBF24),
+        accentButton: Color(0xFFD97736),
+        rimLight: Color(0xFFFFDBA8),
       );
     } else if (lower.contains('makan') || lower.contains('kuliner')) {
       return const _StudioPalette(
         bgTop: Color(0xFF28100E),
-        bgCenter: Color(0xFF571E16),
-        bgBottom: Color(0xFF160807),
+        bgCenter: Color(0xFF5A1F17),
+        bgBottom: Color(0xFF140706),
         haloPrimary: Color(0xFFEF5B2A),
         haloSecondary: Color(0xFFFBBF24),
         accentButton: Color(0xFFEA580C),
-        steamColor: Color(0xFFFEF3C7),
-        hasWarmSteam: true,
+        rimLight: Color(0xFFFDE68A),
       );
     } else if (lower.contains('roti') || lower.contains('pastry')) {
       return const _StudioPalette(
         bgTop: Color(0xFF102229),
         bgCenter: Color(0xFF1E3F4C),
-        bgBottom: Color(0xFF091418),
+        bgBottom: Color(0xFF081216),
         haloPrimary: Color(0xFF38BDF8),
-        haloSecondary: Color(0xFFF59E0B),
+        haloSecondary: Color(0xFFFBBF24),
         accentButton: Color(0xFF0284C7),
-        steamColor: Color(0xFFE0F2FE),
-        hasWarmSteam: true,
+        rimLight: Color(0xFFBAE6FD),
       );
     } else if (lower.contains('cemilan') || lower.contains('snack')) {
       return const _StudioPalette(
@@ -203,8 +195,7 @@ class _ProductDetailSwipeScreenState extends State<ProductDetailSwipeScreen>
         haloPrimary: Color(0xFFF59E0B),
         haloSecondary: Color(0xFFFB923C),
         accentButton: Color(0xFFD97706),
-        steamColor: Color(0xFFFEF08A),
-        hasWarmSteam: true,
+        rimLight: Color(0xFFFEF08A),
       );
     } else if (lower.contains('sembako')) {
       return const _StudioPalette(
@@ -214,8 +205,7 @@ class _ProductDetailSwipeScreenState extends State<ProductDetailSwipeScreen>
         haloPrimary: Color(0xFF10B981),
         haloSecondary: Color(0xFFFBBF24),
         accentButton: Color(0xFF059669),
-        steamColor: Color(0xFFD1FAE5),
-        hasWarmSteam: false,
+        rimLight: Color(0xFFA7F3D0),
       );
     }
     return const _StudioPalette(
@@ -225,8 +215,7 @@ class _ProductDetailSwipeScreenState extends State<ProductDetailSwipeScreen>
       haloPrimary: Color(0xFF60A5FA),
       haloSecondary: Color(0xFF38BDF8),
       accentButton: Color(0xFF2563EB),
-      steamColor: Color(0xFFDBEAFE),
-      hasWarmSteam: false,
+      rimLight: Color(0xFFBFDBFE),
     );
   }
 
@@ -318,7 +307,6 @@ class _ProductDetailSwipeScreenState extends State<ProductDetailSwipeScreen>
     final dynamicPrice = _calculateDynamicPrice(currentProduct.price);
     final isFav = _favoriteIds.contains(currentProduct.id);
 
-    // Daftar kategori unik untuk switcher cepat di atas
     final categories = <String>[
       'Minuman',
       'Makanan',
@@ -336,8 +324,8 @@ class _ProductDetailSwipeScreenState extends State<ProductDetailSwipeScreen>
         curve: Curves.easeOutCubic,
         decoration: BoxDecoration(
           gradient: RadialGradient(
-            center: const Alignment(0.0, -0.22),
-            radius: 1.05,
+            center: const Alignment(0.0, -0.20),
+            radius: 1.08,
             colors: [
               palette.bgCenter,
               palette.bgTop,
@@ -353,10 +341,10 @@ class _ProductDetailSwipeScreenState extends State<ProductDetailSwipeScreen>
               child: Column(
                 children: [
                   // =========================================================
-                  // 1. TOP BAR: Tombol Back, Judul Kategori & Aksi Admin/Fav
+                  // 1. TOP BAR: Tombol Back, Logo Ciri Khas CloudPOS & Aksi
                   // =========================================================
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
                     child: Row(
                       children: [
                         _buildGlassCircleIconButton(
@@ -365,21 +353,28 @@ class _ProductDetailSwipeScreenState extends State<ProductDetailSwipeScreen>
                           onTap: () => Navigator.pop(context),
                         ),
                         const SizedBox(width: 10),
+                        const CloudPosEmblemIcon(
+                          size: 34,
+                          animate: true,
+                          showCrownBadge: false,
+                        ),
+                        const SizedBox(width: 9),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'What would you like to order today?',
+                                'CloudPOS • Katalog Signature',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.68),
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w500,
+                                  color: palette.rimLight.withValues(alpha: 0.85),
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.2,
                                 ),
                               ),
-                              const SizedBox(height: 2),
+                              const SizedBox(height: 1),
                               AnimatedSwitcher(
                                 duration: const Duration(milliseconds: 280),
                                 child: Text(
@@ -500,7 +495,8 @@ class _ProductDetailSwipeScreenState extends State<ProductDetailSwipeScreen>
                   ),
 
                   // =========================================================
-                  // 3. PANGGUNG 3D STUDIO CUTOUT + ANIMASI UAP & PARTIKEL DI ATASNYA
+                  // 3. PANGGUNG 3D LUXURY STUDIO MEDALLION + ORBIT EMAS 60FPS
+                  //    Foto produk 100% UTUH & JERNIH dengan bingkai 3D kaca mewah!
                   // =========================================================
                   Expanded(
                     flex: 6,
@@ -508,26 +504,33 @@ class _ProductDetailSwipeScreenState extends State<ProductDetailSwipeScreen>
                       alignment: Alignment.center,
                       clipBehavior: Clip.none,
                       children: [
-                        // A. Cincin Halo Cahaya Berputar & Berdenyut di Belakang Produk
-                        AnimatedBuilder(
-                          animation: Listenable.merge([
-                            _ambientController,
-                            _pulseController,
-                          ]),
-                          builder: (context, _) {
-                            return CustomPaint(
-                              size: const Size(290, 290),
-                              painter: _StudioPedestalHaloPainter(
-                                orbitPhase: _ambientController.value,
-                                pulseValue: _pulseController.value,
-                                primaryColor: palette.haloPrimary,
-                                secondaryColor: palette.haloSecondary,
-                              ),
-                            );
-                          },
+                        // A. Cincin Orbit Kembar, Halo Spotlight & Partikel Bintang di LUAR Medali
+                        //    (Tidak pernah menutupi permukaan foto makanan/produk!)
+                        IgnorePointer(
+                          child: AnimatedBuilder(
+                            animation: Listenable.merge([
+                              _orbitAndFloatController,
+                              _pulseController,
+                              _sizePulseWaveController,
+                            ]),
+                            builder: (context, _) {
+                              return CustomPaint(
+                                size: const Size(310, 310),
+                                painter: _LuxuryOrbitalStagePainter(
+                                  orbitPhase: _orbitAndFloatController.value,
+                                  pulseValue: _pulseController.value,
+                                  shockwaveValue:
+                                      _sizePulseWaveController.value,
+                                  primaryColor: palette.haloPrimary,
+                                  secondaryColor: palette.haloSecondary,
+                                  rimLightColor: palette.rimLight,
+                                ),
+                              );
+                            },
+                          ),
                         ),
 
-                        // B. Carousel Swipe 3D Parallax Produk (Tanpa Background Kotak!)
+                        // B. Carousel Swipe 3D Coverflow Perspective
                         PageView.builder(
                           controller: _pageController,
                           physics: const BouncingScrollPhysics(),
@@ -536,6 +539,7 @@ class _ProductDetailSwipeScreenState extends State<ProductDetailSwipeScreen>
                             setState(() {
                               _currentIndex = index;
                             });
+                            _sizePulseWaveController.forward(from: 0.0);
                           },
                           itemBuilder: (context, index) {
                             final item = products[index];
@@ -544,51 +548,38 @@ class _ProductDetailSwipeScreenState extends State<ProductDetailSwipeScreen>
 
                             // Skala parallax 3D saat di-swipe + skala ukuran Small/Medium/Large
                             final parallaxScale =
-                                (1.0 - (absDelta * 0.28)).clamp(0.68, 1.0);
+                                (1.0 - (absDelta * 0.26)).clamp(0.70, 1.0);
                             final activeSizeScale =
                                 index == safeIdx ? _getSizeScaleFactor() : 0.88;
                             final totalScale = parallaxScale * activeSizeScale;
-                            final rotationZ = delta * -0.14;
-                            final verticalShift = absDelta * 22.0;
 
-                            return AnimatedScale(
-                              scale: totalScale,
-                              duration: const Duration(milliseconds: 340),
-                              curve: Curves.easeOutBack,
-                              child: Transform.translate(
-                                offset: Offset(0, verticalShift),
-                                child: Transform.rotate(
-                                  angle: rotationZ,
-                                  child: _build3DFloatingCutoutStage(
-                                    product: item,
-                                    palette: palette,
-                                    isActive: index == safeIdx,
-                                  ),
+                            // Rotasi perspektif 3D Coverflow
+                            final rotateY = (delta * -0.42).clamp(-0.65, 0.65);
+                            final verticalShift = absDelta * 18.0;
+
+                            final matrix = Matrix4.identity()
+                              ..setEntry(3, 2, 0.0014)
+                              ..translate(0.0, verticalShift)
+                              ..rotateY(rotateY);
+
+                            return Transform(
+                              transform: matrix,
+                              alignment: Alignment.center,
+                              child: AnimatedScale(
+                                scale: totalScale,
+                                duration: const Duration(milliseconds: 340),
+                                curve: Curves.easeOutBack,
+                                child: _build3DLuxuryMedallionStage(
+                                  product: item,
+                                  palette: palette,
+                                  isActive: index == safeIdx,
                                 ),
                               ),
                             );
                           },
                         ),
 
-                        // C. ANIMASI DI ATAS PRODUK: Kepulan Uap Aroma & Kilau Bintang Emas 60fps
-                        IgnorePointer(
-                          child: AnimatedBuilder(
-                            animation: _ambientController,
-                            builder: (context, _) {
-                              return CustomPaint(
-                                size: const Size(300, 290),
-                                painter: _UpperAromaAndSparklePainter(
-                                  phase: _ambientController.value,
-                                  steamColor: palette.steamColor,
-                                  sparkleColor: palette.haloSecondary,
-                                  showWarmSteam: palette.hasWarmSteam,
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-
-                        // D. Tombol Navigasi Panah Kiri/Kanan Halus
+                        // C. Tombol Navigasi Panah Kiri/Kanan Halus
                         if (safeIdx > 0)
                           Positioned(
                             left: 12,
@@ -726,6 +717,7 @@ class _ProductDetailSwipeScreenState extends State<ProductDetailSwipeScreen>
                                 setState(() {
                                   _selectedSize = sizeName;
                                 });
+                                _sizePulseWaveController.forward(from: 0.0);
                               },
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 240),
@@ -802,7 +794,7 @@ class _ProductDetailSwipeScreenState extends State<ProductDetailSwipeScreen>
                           child: _buildFrostedMetricBox(
                             icon: Icons.star_rounded,
                             label: 'Score • Stok',
-                            value: '4.9 • ${currentProduct.stock} unit',
+                            value: '4.9 ★ • ${currentProduct.stock} unit',
                           ),
                         ),
                       ],
@@ -914,49 +906,45 @@ class _ProductDetailSwipeScreenState extends State<ProductDetailSwipeScreen>
     );
   }
 
-  /// Panggung 3D Cutout Produk dengan Levitasi 60fps & Bayangan Lantai 3D
-  Widget _build3DFloatingCutoutStage({
+  /// Panggung 3D Luxury Studio Medallion:
+  /// Menampilkan foto asli produk 100% UTUH & TAJAM di dalam medali 3D berlapis cincin emas,
+  /// kilau kaca bergerak (specular glass sweep), dan bayangan lantai 3D di bawahnya!
+  Widget _build3DLuxuryMedallionStage({
     required ProductModel product,
     required _StudioPalette palette,
     required bool isActive,
   }) {
-    final cutoutPath = _resolveCutoutAssetPath(product.primaryImage);
-    final isTransparentCutoutAsset =
-        cutoutPath.startsWith('assets/produk_cutout/');
-
     return AnimatedBuilder(
-      animation: _ambientController,
-      builder: (context, child) {
-        final wave = math.sin(_ambientController.value * math.pi * 2);
-        final floatY = isActive ? wave * -7.5 : 0.0;
-        final tiltAngle = isActive
-            ? math.cos(_ambientController.value * math.pi * 2) * 0.024
-            : 0.0;
-        final shadowScale = isActive ? (1.0 - (wave * -0.08)) : 0.85;
+      animation: _orbitAndFloatController,
+      builder: (context, _) {
+        final phase = _orbitAndFloatController.value;
+        final wave = math.sin(phase * math.pi * 2);
+        final floatY = isActive ? wave * -6.5 : 0.0;
+        final shadowScale = isActive ? (1.0 - (wave * -0.07)) : 0.85;
 
         return Stack(
           alignment: Alignment.center,
           clipBehavior: Clip.none,
           children: [
-            // 1. Bayangan Lantai 3D Oval di Bawah Produk yang Melayang
+            // 1. Bayangan Lantai 3D Oval di Bawah Medali yang Melayang
             Positioned(
-              bottom: 14,
+              bottom: 12,
               child: Transform.scale(
                 scaleX: shadowScale * 1.15,
-                scaleY: shadowScale * 0.42,
+                scaleY: shadowScale * 0.38,
                 child: Container(
-                  width: 155,
+                  width: 164,
                   height: 46,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.68),
+                        color: Colors.black.withValues(alpha: 0.72),
                         blurRadius: 26,
                         spreadRadius: 6,
                       ),
                       BoxShadow(
-                        color: palette.haloPrimary.withValues(alpha: 0.25),
+                        color: palette.haloPrimary.withValues(alpha: 0.30),
                         blurRadius: 34,
                         spreadRadius: 2,
                       ),
@@ -966,76 +954,140 @@ class _ProductDetailSwipeScreenState extends State<ProductDetailSwipeScreen>
               ),
             ),
 
-            // 2. Gambar Produk 3D Cutout Melayang Halus Tanpa Border Kaku
+            // 2. Medali Studio 3D Melayang dengan Cincin Bezel Emas/Kaca & Foto Produk Utuh
             Transform.translate(
               offset: Offset(0, floatY),
-              child: Transform.rotate(
-                angle: tiltAngle,
-                child: child,
+              child: Stack(
+                alignment: Alignment.center,
+                clipBehavior: Clip.none,
+                children: [
+                  // A. Bezel Cincin Medali 3D (Gradasi Rim-Light Emas ke Perunggu Gelap)
+                  Container(
+                    width: 214,
+                    height: 214,
+                    padding: const EdgeInsets.all(6.5),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [
+                          palette.rimLight.withValues(alpha: 0.88),
+                          palette.haloPrimary.withValues(alpha: 0.55),
+                          Colors.black.withValues(alpha: 0.65),
+                        ],
+                        stops: const [0.0, 0.50, 1.0],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: palette.haloPrimary.withValues(alpha: 0.42),
+                          blurRadius: 32,
+                          spreadRadius: 2,
+                        ),
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.55),
+                          blurRadius: 20,
+                          offset: const Offset(0, 12),
+                        ),
+                      ],
+                    ),
+                    // B. Foto Produk Asli 100% Utuh & Jernih + Kilau Kaca Specular 3D
+                    child: ClipOval(
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          CustomProductImage(
+                            imageUrl: product.primaryImage,
+                            width: 201,
+                            height: 201,
+                            fit: BoxFit.cover,
+                            borderRadius: BorderRadius.circular(110),
+                            fallbackLabel: product.name,
+                          ),
+                          // Vignette tepi dalam super halus untuk kedalaman bola kaca 3D
+                          DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: RadialGradient(
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.transparent,
+                                  Colors.black.withValues(alpha: 0.34),
+                                ],
+                                stops: const [0.0, 0.78, 1.0],
+                              ),
+                            ),
+                          ),
+                          // Kilau kaca diagonal bergerak lembut (3D Glass Specular Sweep)
+                          if (isActive)
+                            IgnorePointer(
+                              child: CustomPaint(
+                                painter: _MedallionGlassSheenPainter(
+                                  phase: phase,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // C. Lencana Kecil Ciri Khas "★ 4.9 • Signature" di Bawah Medali 3D
+                  if (isActive)
+                    Positioned(
+                      bottom: -8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 11,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              palette.accentButton,
+                              palette.haloPrimary,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: palette.rimLight.withValues(alpha: 0.75),
+                            width: 1.2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.45),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.auto_awesome_rounded,
+                              size: 11.5,
+                              color: palette.rimLight,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'CloudPOS Signature • $_selectedSize',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ],
         );
       },
-      child: Container(
-        width: 224,
-        height: 224,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: palette.haloPrimary.withValues(alpha: 0.28),
-              blurRadius: 36,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
-        child: isTransparentCutoutAsset
-            ? Image.asset(
-                cutoutPath,
-                width: 220,
-                height: 220,
-                fit: BoxFit.contain,
-                filterQuality: FilterQuality.high,
-                errorBuilder: (_, __, ___) => _buildFeatheredFallbackImage(
-                  product.primaryImage,
-                  product.name,
-                ),
-              )
-            : _buildFeatheredFallbackImage(
-                product.primaryImage,
-                product.name,
-              ),
-      ),
-    );
-  }
-
-  /// Untuk foto baru yang di-upload pengguna dari perangkat (Data URI / URL),
-  /// gunakan ShaderMask Radial Feathering agar pinggirannya menyatu lembut tanpa garis kaku
-  Widget _buildFeatheredFallbackImage(String imageUrl, String label) {
-    return ShaderMask(
-      shaderCallback: (rect) {
-        return const RadialGradient(
-          center: Alignment.center,
-          radius: 0.49,
-          colors: [
-            Colors.white,
-            Colors.white,
-            Colors.transparent,
-          ],
-          stops: [0.0, 0.78, 1.0],
-        ).createShader(rect);
-      },
-      blendMode: BlendMode.dstIn,
-      child: CustomProductImage(
-        imageUrl: imageUrl,
-        width: 212,
-        height: 212,
-        fit: BoxFit.cover,
-        borderRadius: BorderRadius.circular(110),
-        fallbackLabel: label,
-      ),
     );
   }
 
@@ -1196,8 +1248,7 @@ class _StudioPalette {
   final Color haloPrimary;
   final Color haloSecondary;
   final Color accentButton;
-  final Color steamColor;
-  final bool hasWarmSteam;
+  final Color rimLight;
 
   const _StudioPalette({
     required this.bgTop,
@@ -1206,168 +1257,143 @@ class _StudioPalette {
     required this.haloPrimary,
     required this.haloSecondary,
     required this.accentButton,
-    required this.steamColor,
-    required this.hasWarmSteam,
+    required this.rimLight,
   });
 }
 
-/// Painter Pedestal Lingkaran Cahaya (Spotlight Halo) & Cincin Orbit Berputar di Belakang Produk
-class _StudioPedestalHaloPainter extends CustomPainter {
+/// Painter Panggung Orbit Kembar 3D, Gelombang Kejut Ukuran & Bintang Emas di Luar Medali
+class _LuxuryOrbitalStagePainter extends CustomPainter {
   final double orbitPhase;
   final double pulseValue;
+  final double shockwaveValue;
   final Color primaryColor;
   final Color secondaryColor;
+  final Color rimLightColor;
 
-  _StudioPedestalHaloPainter({
+  _LuxuryOrbitalStagePainter({
     required this.orbitPhase,
     required this.pulseValue,
+    required this.shockwaveValue,
     required this.primaryColor,
     required this.secondaryColor,
+    required this.rimLightColor,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final baseRadius = size.width * 0.37 + (pulseValue * 6.0);
+    final baseRadius = 112.0 + (pulseValue * 5.0);
 
-    // 1. Halo Radial Lembut Berlapis (Tanpa Garis Kaku)
+    // 1. Halo Radial Lembut di Belakang Medali
     final glowPaint = Paint()
       ..shader = RadialGradient(
         colors: [
-          primaryColor.withValues(alpha: 0.42),
-          secondaryColor.withValues(alpha: 0.18),
+          primaryColor.withValues(alpha: 0.45),
+          secondaryColor.withValues(alpha: 0.16),
           primaryColor.withValues(alpha: 0.0),
         ],
-        stops: const [0.0, 0.62, 1.0],
-      ).createShader(Rect.fromCircle(center: center, radius: baseRadius * 1.32));
-    canvas.drawCircle(center, baseRadius * 1.32, glowPaint);
+        stops: const [0.0, 0.65, 1.0],
+      ).createShader(Rect.fromCircle(center: center, radius: baseRadius * 1.38));
+    canvas.drawCircle(center, baseRadius * 1.38, glowPaint);
 
-    // 2. Piringan Spotlight Studio Dalam (Seperti Lingkaran Pedestal di Video 3)
-    final discPaint = Paint()
-      ..shader = RadialGradient(
-        center: const Alignment(-0.2, -0.25),
-        colors: [
-          Colors.white.withValues(alpha: 0.16),
-          primaryColor.withValues(alpha: 0.24),
-          Colors.black.withValues(alpha: 0.18),
-        ],
-        stops: const [0.0, 0.68, 1.0],
-      ).createShader(Rect.fromCircle(center: center, radius: baseRadius * 0.92));
-    canvas.drawCircle(center, baseRadius * 0.92, discPaint);
+    // 2. Efek Gelombang Kejut (Shockwave Ring) Saat Pilih Ukuran / Ganti Produk
+    if (shockwaveValue > 0.0 && shockwaveValue < 1.0) {
+      final swRadius = 104.0 + (shockwaveValue * 52.0);
+      final swAlpha = (1.0 - shockwaveValue) * 0.55;
+      canvas.drawCircle(
+        center,
+        swRadius,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.5 * (1.0 - shockwaveValue)
+          ..color = rimLightColor.withValues(alpha: swAlpha),
+      );
+    }
 
-    // 3. Dua Busur Cahaya Orbit Berputar Halus Mengelilingi Produk
-    final arcRect = Rect.fromCircle(center: center, radius: baseRadius * 1.02);
-    final arcPaint = Paint()
+    // 3. Cincin Orbit Dalam Berputar Searah Jarum Jam + Titik Komet Bercahaya
+    final orbitRadius1 = 118.0;
+    final arcRect1 = Rect.fromCircle(center: center, radius: orbitRadius1);
+    final angle1 = orbitPhase * math.pi * 2;
+    final arcPaint1 = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.6
       ..strokeCap = StrokeCap.round
-      ..color = secondaryColor.withValues(alpha: 0.38);
+      ..color = rimLightColor.withValues(alpha: 0.42);
 
-    final startAngle1 = orbitPhase * math.pi * 2;
-    canvas.drawArc(arcRect, startAngle1, math.pi * 0.42, false, arcPaint);
+    canvas.drawArc(arcRect1, angle1, math.pi * 0.55, false, arcPaint1);
     canvas.drawArc(
-      arcRect,
-      startAngle1 + math.pi,
-      math.pi * 0.42,
+      arcRect1,
+      angle1 + math.pi,
+      math.pi * 0.55,
       false,
-      arcPaint,
+      arcPaint1,
     );
-  }
 
-  @override
-  bool shouldRepaint(covariant _StudioPedestalHaloPainter oldDelegate) =>
-      oldDelegate.orbitPhase != orbitPhase ||
-      oldDelegate.pulseValue != pulseValue ||
-      oldDelegate.primaryColor != primaryColor;
-}
-
-/// Painter Animasi di Atas Produk:
-/// - Kepulan Uap / Aroma Hangat S-Curve yang Mengalir Naik Perlahan di Atas Produk
-/// - Partikel Bintang & Bokeh Keemasan yang Berkilau di Atas Mahkota Produk
-class _UpperAromaAndSparklePainter extends CustomPainter {
-  final double phase;
-  final Color steamColor;
-  final Color sparkleColor;
-  final bool showWarmSteam;
-
-  _UpperAromaAndSparklePainter({
-    required this.phase,
-    required this.steamColor,
-    required this.sparkleColor,
-    required this.showWarmSteam,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final cx = size.width / 2;
-
-    // 1. TIGA PITA UAP AROMA HANGAT MENGALIR NAIK DI ATAS PRODUK
-    if (showWarmSteam) {
-      final steamOffsets = [-32.0, 0.0, 32.0];
-      for (int i = 0; i < steamOffsets.length; i++) {
-        final localProgress = (phase + (i * 0.33)) % 1.0;
-        final alpha = math.sin(localProgress * math.pi).clamp(0.0, 1.0) * 0.34;
-        if (alpha <= 0.01) continue;
-
-        final baseX = cx + steamOffsets[i];
-        final startY = size.height * 0.34 - (localProgress * 28.0);
-        final endY = startY - 46.0 - (localProgress * 18.0);
-        final sway = math.sin((phase * math.pi * 2) + i * 1.4) * 11.0;
-
-        final path = Path()
-          ..moveTo(baseX, startY)
-          ..cubicTo(
-            baseX - sway,
-            startY - 16,
-            baseX + sway,
-            startY - 32,
-            baseX + (sway * 0.4),
-            endY,
-          );
-
-        final steamPaint = Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 3.2 - (localProgress * 1.2)
-          ..strokeCap = StrokeCap.round
-          ..color = steamColor.withValues(alpha: alpha)
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4.5);
-
-        canvas.drawPath(path, steamPaint);
-      }
+    // Titik komet emas di ujung busur orbit
+    for (final a in [angle1 + math.pi * 0.55, angle1 + math.pi * 1.55]) {
+      final nodePos = Offset(
+        center.dx + math.cos(a) * orbitRadius1,
+        center.dy + math.sin(a) * orbitRadius1,
+      );
+      canvas.drawCircle(
+        nodePos,
+        4.5,
+        Paint()
+          ..color = secondaryColor.withValues(alpha: 0.55)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4.0),
+      );
+      canvas.drawCircle(
+        nodePos,
+        2.2,
+        Paint()..color = Colors.white,
+      );
     }
 
-    // 2. PARTIKEL KILAU BINTANG & BOKEH EMAS DI ATAS & SEKITAR PRODUK
-    for (int i = 0; i < 9; i++) {
-      final seed = i * 1.37;
-      final p = (phase + (i * 0.11)) % 1.0;
-      final twinkle = (0.5 + 0.5 * math.sin((phase * math.pi * 4) + seed))
-          .clamp(0.15, 1.0);
-      final fade = math.sin(p * math.pi).clamp(0.0, 1.0);
+    // 4. Cincin Orbit Luar Berputar Berlawanan Arah Jarum Jam
+    final orbitRadius2 = 132.0;
+    final arcRect2 = Rect.fromCircle(center: center, radius: orbitRadius2);
+    final angle2 = -orbitPhase * math.pi * 2;
+    final arcPaint2 = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.1
+      ..strokeCap = StrokeCap.round
+      ..color = secondaryColor.withValues(alpha: 0.26);
 
-      final angle = -math.pi * 0.85 + (i / 8.0) * (math.pi * 0.70);
-      final radius = 84.0 + (p * 36.0) + math.sin(seed) * 10.0;
-      final px = cx + math.cos(angle) * radius;
-      final py = (size.height * 0.46) + math.sin(angle) * radius - (p * 18.0);
+    canvas.drawArc(arcRect2, angle2, math.pi * 0.35, false, arcPaint2);
+    canvas.drawArc(
+      arcRect2,
+      angle2 + math.pi,
+      math.pi * 0.35,
+      false,
+      arcPaint2,
+    );
 
-      final dotRadius = (1.6 + (i % 3) * 0.9) * twinkle;
-      final baseAlpha = (0.72 * fade * twinkle).clamp(0.0, 1.0);
-      final baseColor = i.isEven ? sparkleColor : steamColor;
-      final color = baseColor.withValues(alpha: baseAlpha);
+    // 5. Partikel Bintang Mahkota & Bokeh Emas di LUAR Medali (Radius 122..148 px)
+    //    Sehingga foto makanan/produk tetap 100% bersih dan jernih!
+    for (int i = 0; i < 8; i++) {
+      final seed = i * 0.92;
+      final twinkle =
+          (0.4 + 0.6 * math.sin((orbitPhase * math.pi * 6) + seed))
+              .clamp(0.15, 1.0);
+      final pAngle = (i / 8.0) * math.pi * 2 + (orbitPhase * math.pi * 0.5);
+      final pRadius = 124.0 + (i % 3) * 9.0 + math.sin(seed) * 4.0;
 
-      // Glow lembut di sekitar bintang
-      canvas.drawCircle(
-        Offset(px, py),
-        dotRadius * 2.2,
-        Paint()
-          ..color = baseColor.withValues(alpha: baseAlpha * 0.35)
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3.0),
+      final px = center.dx + math.cos(pAngle) * pRadius;
+      final py = center.dy + math.sin(pAngle) * pRadius;
+      final starSize = (2.2 + (i % 2) * 1.4) * twinkle;
+      final starColor =
+          (i.isEven ? rimLightColor : secondaryColor).withValues(
+        alpha: (0.75 * twinkle).clamp(0.0, 1.0),
       );
 
-      // Bintang 4 sudut di atas produk untuk partikel utama
       if (i % 2 == 0) {
-        _drawSparkleStar(canvas, Offset(px, py), dotRadius * 2.1, color);
+        _drawSparkleStar(canvas, Offset(px, py), starSize * 1.8, starColor);
       } else {
-        canvas.drawCircle(Offset(px, py), dotRadius, Paint()..color = color);
+        canvas.drawCircle(
+          Offset(px, py),
+          starSize,
+          Paint()..color = starColor,
+        );
       }
     }
   }
@@ -1380,38 +1406,75 @@ class _UpperAromaAndSparklePainter extends CustomPainter {
   ) {
     final path = Path()
       ..moveTo(center.dx, center.dy - radius)
-      ..quadraticBezierTo(
-        center.dx,
-        center.dy,
-        center.dx + radius,
-        center.dy,
-      )
-      ..quadraticBezierTo(
-        center.dx,
-        center.dy,
-        center.dx,
-        center.dy + radius,
-      )
-      ..quadraticBezierTo(
-        center.dx,
-        center.dy,
-        center.dx - radius,
-        center.dy,
-      )
-      ..quadraticBezierTo(
-        center.dx,
-        center.dy,
-        center.dx,
-        center.dy - radius,
-      )
+      ..quadraticBezierTo(center.dx, center.dy, center.dx + radius, center.dy)
+      ..quadraticBezierTo(center.dx, center.dy, center.dx, center.dy + radius)
+      ..quadraticBezierTo(center.dx, center.dy, center.dx - radius, center.dy)
+      ..quadraticBezierTo(center.dx, center.dy, center.dx, center.dy - radius)
       ..close();
-
     canvas.drawPath(path, Paint()..color = color);
   }
 
   @override
-  bool shouldRepaint(covariant _UpperAromaAndSparklePainter oldDelegate) =>
-      oldDelegate.phase != phase ||
-      oldDelegate.steamColor != steamColor ||
-      oldDelegate.showWarmSteam != showWarmSteam;
+  bool shouldRepaint(covariant _LuxuryOrbitalStagePainter oldDelegate) =>
+      oldDelegate.orbitPhase != orbitPhase ||
+      oldDelegate.pulseValue != pulseValue ||
+      oldDelegate.shockwaveValue != shockwaveValue ||
+      oldDelegate.primaryColor != primaryColor;
+}
+
+/// Painter Kilau Kaca Specular 3D yang Melintas Lembut di Atas Permukaan Medali Produk
+class _MedallionGlassSheenPainter extends CustomPainter {
+  final double phase;
+
+  _MedallionGlassSheenPainter({required this.phase});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+
+    // Highlight lengkung kaca 3D tetap di sudut kiri-atas medali
+    final topGlossRect = Rect.fromLTWH(w * 0.08, h * 0.04, w * 0.84, h * 0.42);
+    canvas.drawOval(
+      topGlossRect,
+      Paint()
+        ..shader = LinearGradient(
+          colors: [
+            Colors.white.withValues(alpha: 0.22),
+            Colors.white.withValues(alpha: 0.0),
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ).createShader(topGlossRect),
+    );
+
+    // Pita kilau diagonal lembut yang melintas periodik
+    final sweepProgress = ((phase * 1.5) % 1.0);
+    if (sweepProgress < 0.55) {
+      final t = sweepProgress / 0.55;
+      final sx = -w * 0.6 + (t * w * 2.2);
+      final path = Path()
+        ..moveTo(sx, 0)
+        ..lineTo(sx + w * 0.26, 0)
+        ..lineTo(sx - w * 0.14, h)
+        ..lineTo(sx - w * 0.40, h)
+        ..close();
+
+      canvas.drawPath(
+        path,
+        Paint()
+          ..shader = LinearGradient(
+            colors: [
+              Colors.white.withValues(alpha: 0.0),
+              Colors.white.withValues(alpha: 0.18),
+              Colors.white.withValues(alpha: 0.0),
+            ],
+          ).createShader(Rect.fromLTWH(0, 0, w, h)),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _MedallionGlassSheenPainter oldDelegate) =>
+      oldDelegate.phase != phase;
 }
