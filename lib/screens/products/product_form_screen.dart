@@ -240,13 +240,12 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     if (result != null && result.isNotEmpty && mounted) {
       final catProvider = context.read<CategoryProvider>();
       final ok = await catProvider.addCategory(
-        name: result,
-        description: 'Kategori produk $result',
+        result,
         isAdmin: true,
       );
       if (ok && mounted && catProvider.categories.isNotEmpty) {
         setState(() {
-          _selectedCategoryId = catProvider.categories.first.id;
+          _selectedCategoryId = catProvider.categories.last.id;
         });
       }
     }
