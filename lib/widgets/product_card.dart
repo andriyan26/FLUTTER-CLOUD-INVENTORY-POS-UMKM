@@ -26,6 +26,8 @@ class _ProductCardState extends State<ProductCard> {
   @override
   Widget build(BuildContext context) {
     final product = widget.product;
+    final bool isNewlyAdded =
+        DateTime.now().difference(product.createdAt).inMinutes < 8;
     final Color statusColor = product.isOutOfStock
         ? AppColors.errorRed
         : (product.isLowStock
@@ -45,12 +47,19 @@ class _ProductCardState extends State<ProductCard> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: const Color(0xFFF1F5F9), width: 1.2),
-            boxShadow: const [
+            border: Border.all(
+              color: isNewlyAdded
+                  ? AppColors.posOrange.withValues(alpha: 0.55)
+                  : const Color(0xFFF1F5F9),
+              width: isNewlyAdded ? 1.8 : 1.2,
+            ),
+            boxShadow: [
               BoxShadow(
-                color: Color(0x0D0F172A),
+                color: isNewlyAdded
+                    ? const Color(0x1FF05A28)
+                    : const Color(0x0D0F172A),
                 blurRadius: 18,
-                offset: Offset(0, 8),
+                offset: const Offset(0, 8),
               ),
             ],
           ),
@@ -58,7 +67,7 @@ class _ProductCardState extends State<ProductCard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Gambar Produk Bersih + Badge Status Stok
+              // Gambar Produk Bersih + Badge Status Stok + Badge BARU
               Expanded(
                 child: Stack(
                   children: [
@@ -106,6 +115,43 @@ class _ProductCardState extends State<ProductCard> {
                         ),
                       ),
                     ),
+                    // Badge BARU di Kanan Atas jika baru saja ditambahkan
+                    if (isNewlyAdded)
+                      Positioned(
+                        top: 7,
+                        right: 7,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [
+                                AppColors.posOrange,
+                                AppColors.posOrangeDark,
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x40F05A28),
+                                blurRadius: 6,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: const Text(
+                            'BARU ✨',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),

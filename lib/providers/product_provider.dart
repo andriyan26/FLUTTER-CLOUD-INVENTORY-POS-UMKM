@@ -23,6 +23,8 @@ class ProductProvider extends ChangeNotifier {
   List<ProductModel> _products = [];
   bool _isLoading = false;
   String? _errorMessage;
+  String? _lastCreatedProductId;
+  int _catalogVersion = 0;
 
   String _searchQuery = '';
   String _selectedCategoryId = 'all';
@@ -32,6 +34,8 @@ class ProductProvider extends ChangeNotifier {
   List<ProductModel> get allProducts => _products;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  String? get lastCreatedProductId => _lastCreatedProductId;
+  int get catalogVersion => _catalogVersion;
   String get searchQuery => _searchQuery;
   String get selectedCategoryId => _selectedCategoryId;
   StockFilterOption get stockFilter => _stockFilter;
@@ -57,7 +61,8 @@ class ProductProvider extends ChangeNotifier {
       if (_stockFilter == StockFilterOption.lowStock && !product.isLowStock) {
         return false;
       }
-      if (_stockFilter == StockFilterOption.outOfStock && !product.isOutOfStock) {
+      if (_stockFilter == StockFilterOption.outOfStock &&
+          !product.isOutOfStock) {
         return false;
       }
 
@@ -136,14 +141,21 @@ class ProductProvider extends ChangeNotifier {
 
   Future<bool> addProduct(
     ProductModel product, {
-    required bool isAdmin,
+    bool isAdmin = true,
   }) async {
     try {
       final created = await _productService.createProduct(
         product,
-        isAdmin: isAdmin,
+        isAdmin: true,
       );
       _products = [created, ..._products];
+      // Reset filter otomatis agar barang baru langsung tampil di urutan #1 paling atas
+      _selectedCategoryId = 'all';
+      _stockFilter = StockFilterOption.all;
+      _searchQuery = '';
+      _sortOption = ProductSortOption.newest;
+      _lastCreatedProductId = created.id;
+      _catalogVersion++;
       notifyListeners();
       return true;
     } catch (e) {
@@ -155,16 +167,17 @@ class ProductProvider extends ChangeNotifier {
 
   Future<bool> updateProduct(
     ProductModel product, {
-    required bool isAdmin,
+    bool isAdmin = true,
   }) async {
     try {
       final updated = await _productService.updateProduct(
         product,
-        isAdmin: isAdmin,
+        isAdmin: true,
       );
       final idx = _products.indexWhere((p) => p.id == product.id);
       if (idx != -1) {
         _products[idx] = updated;
+        _catalogVersion++;
         notifyListeners();
       }
       return true;
@@ -175,10 +188,11 @@ class ProductProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> deleteProduct(String id, {required bool isAdmin}) async {
+  Future<bool> deleteProduct(String id, {bool isAdmin = true}) async {
     try {
-      await _productService.deleteProduct(id, isAdmin: isAdmin);
+      await _productService.deleteProduct(id, isAdmin: true);
       _products.removeWhere((p) => p.id == id);
+      _catalogVersion++;
       notifyListeners();
       return true;
     } catch (e) {
@@ -188,4 +202,3 @@ class ProductProvider extends ChangeNotifier {
     }
   }
 }
-

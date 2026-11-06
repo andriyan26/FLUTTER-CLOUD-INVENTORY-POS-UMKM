@@ -72,3 +72,4 @@ Future<bool> triggerFileDownloadImpl({
     return false;
   }
 }
+

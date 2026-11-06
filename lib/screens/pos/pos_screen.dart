@@ -11,6 +11,7 @@ import '../../providers/product_provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../../widgets/product_card.dart';
 import '../products/product_detail_swipe_screen.dart';
+import '../products/product_form_screen.dart';
 import 'receipt_dialog.dart';
 
 class PosScreen extends StatefulWidget {
@@ -333,38 +334,74 @@ class _PosScreenState extends State<PosScreen> {
           index: 1,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
-            child: Container(
-              height: 42,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: AppColors.borderLight),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.search_rounded,
-                    size: 18,
-                    color: AppColors.textMuted,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      onChanged: productProvider.setSearchQuery,
-                      style: const TextStyle(fontSize: 13),
-                      decoration: const InputDecoration(
-                        hintText: 'Cari produk atau scan SKU...',
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        isDense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 42,
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: AppColors.borderLight),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.search_rounded,
+                          size: 18,
+                          color: AppColors.textMuted,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            onChanged: productProvider.setSearchQuery,
+                            style: const TextStyle(fontSize: 13),
+                            decoration: const InputDecoration(
+                              hintText: 'Cari produk atau scan SKU...',
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              isDense: true,
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ProductFormScreen(),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.posOrange,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 11,
+                      vertical: 10,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  icon: const Icon(Icons.add_rounded, size: 16),
+                  label: const Text(
+                    'Barang',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -382,7 +419,9 @@ class _PosScreenState extends State<PosScreen> {
             itemBuilder: (context, index) {
               final prod = products[index];
               return SmoothStaggeredReveal(
-                key: ValueKey('pos_card_${prod.id}'),
+                key: ValueKey(
+                  'pos_card_${prod.id}_${productProvider.catalogVersion}',
+                ),
                 index: index + 2,
                 child: ProductCard(
                   product: prod,

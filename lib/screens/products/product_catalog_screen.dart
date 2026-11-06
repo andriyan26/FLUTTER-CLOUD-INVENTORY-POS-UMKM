@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/smooth_staggered_reveal.dart';
 import '../../models/product_model.dart';
-import '../../providers/auth_provider.dart';
 import '../../providers/category_provider.dart';
 import '../../providers/product_provider.dart';
 import '../../widgets/product_card.dart';
@@ -19,7 +18,6 @@ class ProductCatalogScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final productProvider = context.watch<ProductProvider>();
     final categoryProvider = context.watch<CategoryProvider>();
-    final isAdmin = context.watch<AuthProvider>().isAdmin;
     final products = productProvider.filteredProducts;
 
     return Scaffold(
@@ -59,52 +57,50 @@ class ProductCatalogScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    if (isAdmin) ...[
-                      IconButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const CategoryManagementScreen(),
-                            ),
-                          );
-                        },
-                        icon: const Icon(
-                          Icons.category_outlined,
-                          color: AppColors.textDarkSlate,
-                        ),
-                        tooltip: 'Kelola Kategori',
+                    IconButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const CategoryManagementScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(
+                        Icons.category_outlined,
+                        color: AppColors.textDarkSlate,
                       ),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const ProductFormScreen(),
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.posOrange,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
+                      tooltip: 'Kelola Kategori',
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ProductFormScreen(),
                           ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.posOrange,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
                         ),
-                        icon: const Icon(Icons.add_rounded, size: 16),
-                        label: const Text(
-                          'Produk',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                          ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
                         ),
                       ),
-                    ],
+                      icon: const Icon(Icons.add_rounded, size: 16),
+                      label: const Text(
+                        'Tambah Barang',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -295,7 +291,7 @@ class ProductCatalogScreen extends StatelessWidget {
                         final prod = products[index];
                         return SmoothStaggeredReveal(
                           key: ValueKey(
-                            'cat_grid_${prod.id}_${productProvider.selectedCategoryId}_${productProvider.stockFilter.name}',
+                            'cat_grid_${prod.id}_${productProvider.selectedCategoryId}_${productProvider.stockFilter.name}_${productProvider.catalogVersion}',
                           ),
                           index: index + 2,
                           baseDelay: const Duration(milliseconds: 70),

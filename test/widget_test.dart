@@ -5,6 +5,7 @@ import 'package:cloud_inventory_pos_umkm/core/widgets/custom_cached_image.dart';
 import 'package:cloud_inventory_pos_umkm/models/product_model.dart';
 import 'package:cloud_inventory_pos_umkm/models/user_profile.dart';
 import 'package:cloud_inventory_pos_umkm/providers/cart_provider.dart';
+import 'package:cloud_inventory_pos_umkm/providers/product_provider.dart';
 import 'package:cloud_inventory_pos_umkm/services/report_service.dart';
 import 'package:cloud_inventory_pos_umkm/services/transaction_service.dart';
 
@@ -54,6 +55,33 @@ void main() {
       final error = cart.addToCart(product, quantity: 1);
       expect(error, isNotNull);
       expect(cart.totalItemsCount, equals(2));
+    });
+
+    test('ProductProvider menampilkan barang baru secara otomatis di urutan #1', () async {
+      final provider = ProductProvider();
+      await provider.loadProducts();
+      provider.setCategoryFilter('cat-99'); // Simulasi filter aktif sebelumnya
+
+      final newProd = ProductModel(
+        id: '',
+        sku: 'UMKM-999',
+        name: 'Es Matcha Spesial Baru',
+        categoryId: 'cat-1',
+        categoryName: 'Minuman & Kopi',
+        price: 24000,
+        stock: 30,
+        description: 'Matcha Jepang asli',
+        images: const [
+          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+        ],
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      final ok = await provider.addProduct(newProd, isAdmin: true);
+      expect(ok, isTrue);
+      expect(provider.selectedCategoryId, equals('all'));
+      expect(provider.filteredProducts.first.name, equals('Es Matcha Spesial Baru'));
     });
 
     test('ReportService mendeteksi produk stok menipis & membuat dokumen cetak', () async {

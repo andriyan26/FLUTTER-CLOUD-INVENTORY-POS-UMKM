@@ -13,3 +13,4 @@ Future<bool> triggerFileDownloadImpl({
 }) async {
   return true;
 }
+
