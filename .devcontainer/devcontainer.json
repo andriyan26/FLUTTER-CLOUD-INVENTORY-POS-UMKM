@@ -1,0 +1,35 @@
+{
+  "name": "Flutter Cloud Inventory & POS UMKM (Codespaces)",
+  "image": "ghcr.io/cirruslabs/flutter:stable",
+  "forwardPorts": [8080, 3000],
+  "portsAttributes": {
+    "8080": {
+      "label": "Flutter Web Preview (iPhone 13 & Responsive)",
+      "onAutoForward": "openPreview"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Dart-Code.dart-code",
+        "Dart-Code.flutter"
+      ],
+      "settings": {
+        "dart.flutterSdkPath": "/sdks/flutter",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.fixAll": "explicit"
+        },
+        "dart.openDevTools": "never",
+        "files.watcherExclude": {
+          "**/.git/objects/**": true,
+          "**/.git/subtree-cache/**": true,
+          "**/build/**": true,
+          "**/.dart_tool/**": true
+        }
+      }
+    }
+  },
+  "updateContentCommand": "flutter config --enable-web && flutter pub get",
+  "postAttachCommand": "echo '✅ Environment siap! Jalankan: flutter run -d web-server --web-hostname=0.0.0.0 --web-port=8080'"
+}

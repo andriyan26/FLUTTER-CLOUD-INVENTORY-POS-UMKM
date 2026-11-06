@@ -1,0 +1,11 @@
+{
+  "name": "Cloud Inventory POS UMKM",
+  "short_name": "CloudPOS",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#4E8D2A",
+  "description": "Sistem Inventaris & Kasir (POS) Cloud Modern untuk UMKM.",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false
+}
