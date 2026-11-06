@@ -18,7 +18,6 @@ import '../categories/category_management_screen.dart';
 import '../pos/live_delivery_tracker_dialog.dart';
 import '../pos/quick_add_sheet.dart';
 import '../products/product_detail_swipe_screen.dart';
-import '../products/product_form_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final ValueChanged<int>? onSwitchTab;
@@ -237,41 +236,6 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 ),
                               ),
                             ),
-                            ElevatedButton.icon(
-                              onPressed: () async {
-                                final added = await Navigator.push<bool>(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const ProductFormScreen(),
-                                  ),
-                                );
-                                if (added == true && mounted) {
-                                  setState(() => _categoryAnimVersion++);
-                                }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.posOrange,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 11,
-                                  vertical: 7,
-                                ),
-                                minimumSize: Size.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                              ),
-                              icon: const Icon(Icons.add_rounded, size: 15),
-                              label: const Text(
-                                'Barang',
-                                style: TextStyle(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 6),
                             Container(
                               width: 38,
                               height: 38,
@@ -645,55 +609,35 @@ class _DashboardScreenState extends State<DashboardScreen>
 
                       const SizedBox(height: 10),
 
-                      // Header Katalog Unggulan + Tombol Cepat Tambah Barang
+                      // Header Katalog Unggulan + Lihat Semua (Persis Video 2)
                       SmoothStaggeredReveal(
                         index: 4,
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              'Katalog Unggulan (${products.length} Barang)',
-                              style: const TextStyle(
+                            const Text(
+                              'Katalog Unggulan UMKM',
+                              style: TextStyle(
                                 fontSize: 14.5,
                                 fontWeight: FontWeight.w900,
                                 color: AppColors.textDarkSlate,
                               ),
                             ),
                             InkWell(
-                              onTap: () async {
-                                final added = await Navigator.push<bool>(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const ProductFormScreen(),
-                                  ),
-                                );
-                                if (added == true && mounted) {
-                                  setState(() => _categoryAnimVersion++);
-                                }
-                              },
+                              onTap: () => widget.onSwitchTab?.call(1),
                               borderRadius: BorderRadius.circular(12),
                               child: const Padding(
                                 padding: EdgeInsets.symmetric(
                                   horizontal: 4,
                                   vertical: 2,
                                 ),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.add_circle_rounded,
-                                      size: 15,
-                                      color: AppColors.posOrange,
-                                    ),
-                                    SizedBox(width: 4),
-                                    Text(
-                                      'Tambah Barang Baru',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w800,
-                                        color: AppColors.posOrange,
-                                      ),
-                                    ),
-                                  ],
+                                child: Text(
+                                  'Lihat Semua',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.posOrange,
+                                  ),
                                 ),
                               ),
                             ),

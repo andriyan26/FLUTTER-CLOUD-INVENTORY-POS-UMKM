@@ -235,18 +235,44 @@ class _LiveDeliveryTrackerDialogState extends State<LiveDeliveryTrackerDialog>
             ),
           ),
           const SizedBox(height: 16),
-          SizedBox(
-            height: 190,
-            width: double.infinity,
-            child: AnimatedBuilder(
-              animation: _animController,
-              builder: (context, _) {
-                return CustomPaint(
-                  painter: _MiniStreetScooterAndWalkersPainter(
-                    phase: _animController.value,
-                  ),
-                );
-              },
+          ClipRRect(
+            borderRadius: BorderRadius.circular(22),
+            child: SizedBox(
+              height: 200,
+              width: double.infinity,
+              child: AnimatedBuilder(
+                animation: _animController,
+                builder: (context, _) {
+                  final t = math.sin(_animController.value * math.pi);
+                  return Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Transform.scale(
+                        scale: 1.0 + t * 0.06,
+                        child: Image.asset(
+                          'assets/images/boulevard_clean.jpg',
+                          fit: BoxFit.cover,
+                          alignment: const Alignment(0, 0.35),
+                        ),
+                      ),
+                      Positioned(
+                        left: 36 + t * 28,
+                        bottom: 8 + t * 22,
+                        width: 118,
+                        height: 175,
+                        child: Transform.scale(
+                          scale: 1.0 - t * 0.16,
+                          alignment: Alignment.bottomCenter,
+                          child: Image.asset(
+                            'assets/images/scooter_rider_3d.png',
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
             ),
           ),
           const SizedBox(height: 18),
@@ -619,137 +645,6 @@ class _LiveDeliveryMapPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _LiveDeliveryMapPainter oldDelegate) =>
-      oldDelegate.phase != phase;
-}
-
-class _MiniStreetScooterAndWalkersPainter extends CustomPainter {
-  final double phase;
-
-  _MiniStreetScooterAndWalkersPainter({required this.phase});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-
-    // Background lingkaran lembut
-    canvas.drawCircle(
-      Offset(w * 0.5, h * 0.52),
-      h * 0.44,
-      Paint()..color = const Color(0xFFFFEFE6),
-    );
-
-    // Jalan aspal bawah
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(w * 0.1, h * 0.76, w * 0.8, 16),
-        const Radius.circular(8),
-      ),
-      Paint()..color = const Color(0xFF334155),
-    );
-
-    // Marka jalan bergerak
-    for (int i = 0; i < 5; i++) {
-      final dx = ((i / 5.0) - phase) % 1.0;
-      final normDx = dx < 0 ? dx + 1.0 : dx;
-      final x = w * 0.14 + normDx * (w * 0.72);
-      canvas.drawLine(
-        Offset(x, h * 0.80),
-        Offset(x + 16, h * 0.80),
-        Paint()
-          ..color = const Color(0xFFFDE047)
-          ..strokeWidth = 2.5
-          ..strokeCap = StrokeCap.round,
-      );
-    }
-
-    // Orang berjalan di trotoar belakang
-    final walkerX = w * 0.25 + math.sin(phase * math.pi * 2) * 18;
-    final legSwing = math.sin(phase * math.pi * 8) * 6;
-    canvas.drawCircle(
-      Offset(walkerX, h * 0.44),
-      6,
-      Paint()..color = const Color(0xFFFBBF24),
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromCenter(
-          center: Offset(walkerX, h * 0.56),
-          width: 12,
-          height: 18,
-        ),
-        const Radius.circular(5),
-      ),
-      Paint()..color = const Color(0xFF475569),
-    );
-    canvas.drawLine(
-      Offset(walkerX, h * 0.64),
-      Offset(walkerX - legSwing, h * 0.75),
-      Paint()
-        ..color = const Color(0xFF1E293B)
-        ..strokeWidth = 3.5,
-    );
-    canvas.drawLine(
-      Offset(walkerX, h * 0.64),
-      Offset(walkerX + legSwing, h * 0.75),
-      Paint()
-        ..color = const Color(0xFF1E293B)
-        ..strokeWidth = 3.5,
-    );
-
-    // Motor Skuter Oranye melaju di tengah
-    final bounceY = math.sin(phase * math.pi * 6) * -3.0;
-    final sx = w * 0.54;
-    final sy = h * 0.62 + bounceY;
-
-    // Roda belakang & depan
-    for (final rx in [sx - 28, sx + 28]) {
-      canvas.drawCircle(
-        Offset(rx, sy + 14),
-        13,
-        Paint()..color = const Color(0xFF0F172A),
-      );
-      canvas.drawCircle(
-        Offset(rx, sy + 14),
-        6,
-        Paint()..color = Colors.white,
-      );
-    }
-    // Bodi skuter oranye
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromCenter(center: Offset(sx, sy + 4), width: 64, height: 18),
-        const Radius.circular(9),
-      ),
-      Paint()..color = AppColors.posOrange,
-    );
-    // Boks pengiriman belakang
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(sx - 38, sy - 18, 22, 20),
-        const Radius.circular(5),
-      ),
-      Paint()..color = const Color(0xFFC2410C),
-    );
-    // Pengendara & Helm
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(sx - 10, sy - 26, 18, 26),
-        const Radius.circular(6),
-      ),
-      Paint()..color = const Color(0xFF1E293B),
-    );
-    canvas.drawCircle(
-      Offset(sx + 2, sy - 34),
-      9,
-      Paint()..color = AppColors.posOrange,
-    );
-  }
-
-  @override
-  bool shouldRepaint(
-    covariant _MiniStreetScooterAndWalkersPainter oldDelegate,
-  ) =>
       oldDelegate.phase != phase;
 }
 
