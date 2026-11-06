@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/currency_formatter.dart';
+import '../../core/widgets/custom_cached_image.dart';
 import '../../models/product_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/category_provider.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/transaction_provider.dart';
+import '../../services/category_service.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/stat_card.dart';
 import '../categories/category_management_screen.dart';
@@ -26,14 +28,21 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
-  String _selectedChartPeriod = 'Mingguan'; // 'Harian', 'Mingguan', 'Bulanan'
+class _DashboardScreenState extends State<DashboardScreen>
+    with SingleTickerProviderStateMixin {
+  String _selectedChartPeriod = 'Mingguan';
+  int _categoryAnimVersion = 0;
+  bool _showWaveBanner = false;
 
   void _openProductSwipeDetail(ProductModel product) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => ProductDetailSwipeScreen(initialProduct: product),
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 380),
+        pageBuilder: (_, animation, __) => FadeTransition(
+          opacity: animation,
+          child: ProductDetailSwipeScreen(initialProduct: product),
+        ),
       ),
     );
   }
@@ -47,21 +56,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  IconData _getCategoryIcon(String name) {
-    final lower = name.toLowerCase();
-    if (lower.contains('minum') || lower.contains('kopi')) {
-      return Icons.local_cafe_rounded;
-    }
-    if (lower.contains('ringan') || lower.contains('camilan')) {
-      return Icons.cookie_rounded;
-    }
-    if (lower.contains('roti') || lower.contains('bakery')) {
-      return Icons.bakery_dining_rounded;
-    }
-    if (lower.contains('sembako')) {
-      return Icons.rice_bowl_rounded;
-    }
-    return Icons.shopping_bag_rounded;
+  void _triggerCategorySwitch(ProductProvider provider, String categoryId) {
+    provider.setCategoryFilter(categoryId);
+    setState(() {
+      _categoryAnimVersion++;
+    });
   }
 
   @override
@@ -83,27 +82,71 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: RefreshIndicator(
           color: AppColors.posOrange,
           onRefresh: () async {
+            setState(() => _showWaveBanner = true);
             await Future.wait([
               productProvider.loadProducts(),
               categoryProvider.loadCategories(),
               txProvider.loadTransactions(),
             ]);
+            await Future.delayed(const Duration(milliseconds: 900));
+            if (mounted) {
+              setState(() => _showWaveBanner = false);
+            }
           },
           child: CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              // 1. HEADER ATAS PERSIS VIDEO 2 (KONSEP SETELAH LOGIN.mp4 — "Bonjour, Ayoub")
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
+                  padding: const EdgeInsets.fromLTRB(18, 10, 18, 0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Animasi Tangan Melambai saat Pull-to-Refresh (Persis Video 2 detik 00:05)
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 280),
+                        curve: Curves.easeOutBack,
+                        child: _showWaveBanner
+                            ? Container(
+                                width: double.infinity,
+                                margin: const EdgeInsets.only(bottom: 10),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                  horizontal: 14,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.posOrangeLight,
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.waving_hand_rounded,
+                                      color: AppColors.posOrange,
+                                      size: 20,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'Data stok & katalog disinkronkan!',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.posOrangeDark,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+
+                      // 1. HEADER ATAS PERSIS VIDEO 2 ("Bonjour, Andriyan")
                       Row(
                         children: [
                           Container(
-                            width: 42,
-                            height: 42,
+                            width: 44,
+                            height: 44,
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
                                 colors: [
@@ -113,6 +156,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                               shape: BoxShape.circle,
                               border: Border.all(color: Colors.white, width: 2),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x33F05A28),
+                                  blurRadius: 10,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
                             ),
                             alignment: Alignment.center,
                             child: Text(
@@ -122,7 +172,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w900,
-                                fontSize: 16,
+                                fontSize: 17,
                               ),
                             ),
                           ),
@@ -136,15 +186,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
-                                    fontSize: 16.5,
+                                    fontSize: 17,
                                     fontWeight: FontWeight.w900,
                                     color: AppColors.textDarkSlate,
+                                    letterSpacing: -0.3,
                                   ),
                                 ),
                                 Row(
                                   children: [
                                     Text(
-                                      '${user?.isAdmin == true ? 'Admin Utama' : 'Kasir Aktif'} • UMKM Cloud',
+                                      '${user?.isAdmin == true ? 'Cabang Utama' : 'Kasir Aktif'} • CloudPOS',
                                       style: const TextStyle(
                                         fontSize: 11.5,
                                         color: AppColors.textMuted,
@@ -205,9 +256,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       RichText(
                         text: const TextSpan(
                           style: TextStyle(
-                            fontSize: 24,
+                            fontSize: 25,
                             fontWeight: FontWeight.w900,
-                            letterSpacing: -0.6,
+                            letterSpacing: -0.7,
                           ),
                           children: [
                             TextSpan(
@@ -247,7 +298,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           children: [
                             Expanded(
                               child: TextField(
-                                onChanged: productProvider.setSearchQuery,
+                                onChanged: (val) {
+                                  productProvider.setSearchQuery(val);
+                                  setState(() => _categoryAnimVersion++);
+                                },
                                 style: const TextStyle(
                                   fontSize: 13.5,
                                   fontWeight: FontWeight.w600,
@@ -285,9 +339,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                       const SizedBox(height: 16),
 
-                      // 4. HORIZONTAL CATEGORY CAROUSEL BULAT PERSIS VIDEO 2
+                      // 4. HORIZONTAL CATEGORY CAROUSEL BULAT BERGAMBAR PERSIS VIDEO 2 (00:03 - 00:08)
                       SizedBox(
-                        height: 86,
+                        height: 92,
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
                           physics: const BouncingScrollPhysics(),
@@ -297,50 +351,70 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             final isAll = index == 0;
                             final catId =
                                 isAll ? 'all' : categories[index - 1].id;
-                            final catName = isAll
+                            final fullCatName = isAll
                                 ? 'Semua'
-                                : categories[index - 1].name.split(' ').first;
+                                : categories[index - 1].name;
+                            final shortName = fullCatName.split(' ').first;
                             final isSelected =
                                 productProvider.selectedCategoryId == catId;
+                            final thumbUrl = isAll
+                                ? 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=300&q=80'
+                                : CategoryService.getCategoryThumbnail(
+                                    fullCatName,
+                                  );
 
                             return GestureDetector(
-                              onTap: () =>
-                                  productProvider.setCategoryFilter(catId),
+                              onTap: () => _triggerCategorySwitch(
+                                productProvider,
+                                catId,
+                              ),
                               child: Column(
                                 children: [
-                                  AnimatedContainer(
+                                  AnimatedScale(
+                                    scale: isSelected ? 1.07 : 1.0,
                                     duration: const Duration(milliseconds: 220),
-                                    width: 58,
-                                    height: 58,
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? AppColors.posOrangeLight
-                                          : const Color(0xFFF3F1ED),
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
+                                    curve: Curves.easeOutBack,
+                                    child: AnimatedContainer(
+                                      duration:
+                                          const Duration(milliseconds: 220),
+                                      width: 62,
+                                      height: 62,
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: BoxDecoration(
                                         color: isSelected
-                                            ? AppColors.posOrange
-                                            : Colors.transparent,
-                                        width: 2,
+                                            ? AppColors.posOrangeLight
+                                            : const Color(0xFFF3EFEA),
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? AppColors.posOrange
+                                              : Colors.transparent,
+                                          width: 2.2,
+                                        ),
+                                        boxShadow: isSelected
+                                            ? const [
+                                                BoxShadow(
+                                                  color: Color(0x33F05A28),
+                                                  blurRadius: 10,
+                                                  offset: Offset(0, 4),
+                                                ),
+                                              ]
+                                            : null,
                                       ),
-                                    ),
-                                    child: Icon(
-                                      isAll
-                                          ? Icons.apps_rounded
-                                          : _getCategoryIcon(catName),
-                                      color: isSelected
-                                          ? AppColors.posOrange
-                                          : const Color(0xFF64748B),
-                                      size: 25,
+                                      child: CustomProductImage(
+                                        imageUrl: thumbUrl,
+                                        borderRadius: BorderRadius.circular(40),
+                                        fallbackLabel: shortName,
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(height: 6),
                                   Text(
-                                    catName,
+                                    shortName,
                                     style: TextStyle(
-                                      fontSize: 11.5,
+                                      fontSize: 12,
                                       fontWeight: isSelected
-                                          ? FontWeight.w800
+                                          ? FontWeight.w900
                                           : FontWeight.w600,
                                       color: isSelected
                                           ? AppColors.posOrange
@@ -354,39 +428,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
 
-                      const SizedBox(height: 10),
-
-                      // Header Katalog Pilihan (Klik kartu untuk Video 3 Swipe Detail, Klik '+' untuk Video 2 Sheet)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Katalog Unggulan UMKM',
-                            style: TextStyle(
-                              fontSize: 15.5,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.textDarkSlate,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () => widget.onSwitchTab?.call(1),
-                            child: const Text(
-                              'Lihat Semua',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.posOrange,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                      const SizedBox(height: 8),
                     ],
                   ),
                 ),
               ),
 
-              // 5. GRID 2 KOLOM PRODUK PERSIS VIDEO 2 (Smash Burger / Pizza / Cappuccino style)
+              // 5. GRID 2 KOLOM PRODUK DENGAN ANIMASI STAGGERED SLIDE & FADE SAAT PINDAH KATEGORI (Persis Video 2 detik 00:03-00:08)
               if (productProvider.isLoading)
                 const SliverToBoxAdapter(
                   child: Padding(
@@ -404,7 +452,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     padding: EdgeInsets.all(28),
                     child: Center(
                       child: Text(
-                        'Tidak ada produk yang cocok dengan pencarian.',
+                        'Tidak ada produk yang cocok dengan kategori/pencarian.',
                         style: TextStyle(color: AppColors.textMuted),
                       ),
                     ),
@@ -419,15 +467,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       maxCrossAxisExtent: 220,
                       mainAxisSpacing: 12,
                       crossAxisSpacing: 12,
-                      childAspectRatio: 0.76,
+                      childAspectRatio: 0.75,
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
                         final prod = products[index];
-                        return ProductCard(
-                          product: prod,
-                          onTapDetail: () => _openProductSwipeDetail(prod),
-                          onTapAddToCart: () => _openQuickAddSheet(prod),
+                        return TweenAnimationBuilder<double>(
+                          key: ValueKey(
+                            'card_${prod.id}_$_categoryAnimVersion',
+                          ),
+                          tween: Tween(begin: 0.0, end: 1.0),
+                          duration: Duration(
+                            milliseconds: 280 + (index * 55).clamp(0, 260),
+                          ),
+                          curve: Curves.easeOutCubic,
+                          builder: (context, value, child) {
+                            return Opacity(
+                              opacity: value,
+                              child: Transform.translate(
+                                offset: Offset(0, (1 - value) * 22),
+                                child: child,
+                              ),
+                            );
+                          },
+                          child: ProductCard(
+                            product: prod,
+                            onTapDetail: () => _openProductSwipeDetail(prod),
+                            onTapAddToCart: () => _openQuickAddSheet(prod),
+                          ),
                         );
                       },
                       childCount: products.length > 6 ? 6 : products.length,
@@ -435,10 +502,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
 
-              // 6. SEKSI STATISTIK KPI, GRAFIK PENJUALAN & AKTIVITAS INVENTARIS
+              // 6. SEKSI STATISTIK KPI, GRAFIK PENJUALAN & PERINGATAN STOK
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 22, 18, 110),
+                  padding: const EdgeInsets.fromLTRB(18, 20, 18, 110),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -446,7 +513,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text(
-                            'Ringkasan Bisnis & Inventaris',
+                            'Statistik & Analitik UMKM',
                             style: TextStyle(
                               fontSize: 15.5,
                               fontWeight: FontWeight.w900,
@@ -477,7 +544,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       const SizedBox(height: 10),
 
-                      // Grid 6 Statistik Utama
                       GridView.count(
                         crossAxisCount: 2,
                         shrinkWrap: true,
@@ -522,13 +588,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                       const SizedBox(height: 16),
 
-                      // Grafik Penjualan Interaktif (Harian / Mingguan / Bulanan)
                       _buildSalesChartCard(),
 
-                      const SizedBox(height: 16),
-
-                      // Peringatan Stok Menipis
                       if (lowStockList.isNotEmpty) ...[
+                        const SizedBox(height: 16),
                         const Text(
                           'Peringatan Stok Menipis',
                           style: TextStyle(
@@ -756,4 +819,3 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 }
-

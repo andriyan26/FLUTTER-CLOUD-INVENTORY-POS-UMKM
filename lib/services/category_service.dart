@@ -5,30 +5,48 @@ class CategoryService {
   static final List<CategoryModel> _demoCategories = [
     CategoryModel(
       id: 'cat-1',
-      name: 'Minuman Kopi & Teh',
+      name: 'Minuman & Kopi',
       createdAt: DateTime.now().subtract(const Duration(days: 30)),
     ),
     CategoryModel(
       id: 'cat-2',
-      name: 'Makanan Ringan',
+      name: 'Roti & Pastry',
       createdAt: DateTime.now().subtract(const Duration(days: 28)),
     ),
     CategoryModel(
       id: 'cat-3',
-      name: 'Roti & Bakery',
+      name: 'Kuliner & Snack',
       createdAt: DateTime.now().subtract(const Duration(days: 25)),
     ),
     CategoryModel(
       id: 'cat-4',
-      name: 'Sembako Harian',
+      name: 'Sembako UMKM',
       createdAt: DateTime.now().subtract(const Duration(days: 20)),
     ),
     CategoryModel(
       id: 'cat-5',
-      name: 'Kebutuhan Rumah',
+      name: 'Kebutuhan Harian',
       createdAt: DateTime.now().subtract(const Duration(days: 15)),
     ),
   ];
+
+  /// Thumbnail kategori bergaya ilustrasi/foto bersih seperti di Video 2 (KONSEP SETELAH LOGIN.mp4)
+  static String getCategoryThumbnail(String categoryName) {
+    final lower = categoryName.toLowerCase();
+    if (lower.contains('minum') || lower.contains('kopi')) {
+      return 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=300&q=80';
+    }
+    if (lower.contains('roti') || lower.contains('pastry') || lower.contains('bakery')) {
+      return 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=300&q=80';
+    }
+    if (lower.contains('kuliner') || lower.contains('snack') || lower.contains('ringan')) {
+      return 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=300&q=80';
+    }
+    if (lower.contains('sembako')) {
+      return 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=300&q=80';
+    }
+    return 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=300&q=80';
+  }
 
   Future<List<CategoryModel>> fetchCategories() async {
     final client = SupabaseConfig.clientOrNull;
@@ -138,4 +156,3 @@ class CategoryService {
     _demoCategories.removeWhere((c) => c.id == id);
   }
 }
-

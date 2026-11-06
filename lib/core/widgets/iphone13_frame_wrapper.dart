@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../constants/app_constants.dart';
 import '../config/supabase_config.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/ui_frame_provider.dart';
 
 class IPhone13FrameWrapper extends StatelessWidget {
@@ -16,27 +17,31 @@ class IPhone13FrameWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Jika dibuka langsung dari browser smartphone asli, tampilkan full layar
         if (constraints.maxWidth < 520) {
           return child;
         }
 
         final frameProvider = context.watch<UiFrameProvider>();
+        final authProvider = context.watch<AuthProvider>();
         final mode = frameProvider.viewportMode;
 
         return Scaffold(
           backgroundColor: const Color(0xFF0F172A),
           body: Column(
             children: [
-              _buildTopSimulatorToolbar(context, frameProvider, mode),
+              _buildTopSimulatorToolbar(
+                context,
+                frameProvider,
+                authProvider,
+                mode,
+              ),
               Expanded(
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 220),
                   child: _buildViewportBody(
                     context,
                     mode,
-                    constraints.maxWidth,
-                    constraints.maxHeight - 48,
+                    authProvider.isAuthenticated,
                   ),
                 ),
               ),
@@ -50,6 +55,7 @@ class IPhone13FrameWrapper extends StatelessWidget {
   Widget _buildTopSimulatorToolbar(
     BuildContext context,
     UiFrameProvider provider,
+    AuthProvider authProvider,
     ViewportMode activeMode,
   ) {
     final isCloudLive = SupabaseConfig.isConfigured;
@@ -75,14 +81,14 @@ class IPhone13FrameWrapper extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           const Text(
-            'Cloud Inventory POS • Studio Preview',
+            'CloudPOS • UMKM Studio',
             style: TextStyle(
               color: Colors.white,
               fontSize: 12.5,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
@@ -97,11 +103,44 @@ class IPhone13FrameWrapper extends StatelessWidget {
                 color: isCloudLive
                     ? const Color(0xFF6EE7B7)
                     : const Color(0xFFFBBF24),
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
+                fontSize: 10.5,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
+          if (authProvider.isAuthenticated) ...[
+            const SizedBox(width: 8),
+            InkWell(
+              onTap: () => authProvider.signOut(),
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF334155),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.replay_rounded,
+                      size: 13,
+                      color: Color(0xFFA3E635),
+                    ),
+                    SizedBox(width: 4),
+                    Text(
+                      'Ulangi Animasi Login',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
           const Spacer(),
           _buildModeChip(
             label: 'iPhone 13 (390×844)',
@@ -168,8 +207,7 @@ class IPhone13FrameWrapper extends StatelessWidget {
   Widget _buildViewportBody(
     BuildContext context,
     ViewportMode mode,
-    double maxWidth,
-    double maxHeight,
+    bool isAuthenticated,
   ) {
     if (mode == ViewportMode.desktopFull) {
       return SizedBox.expand(
@@ -215,7 +253,6 @@ class IPhone13FrameWrapper extends StatelessWidget {
       );
     }
 
-    // Default: iPhone 13 Frame (390 x 844 logical pixels + realistic bezel & notch)
     const double phoneW = AppConstants.iphone13Width;
     const double phoneH = AppConstants.iphone13Height;
 
@@ -261,16 +298,17 @@ class IPhone13FrameWrapper extends StatelessWidget {
                   child: Stack(
                     children: [
                       Positioned.fill(child: child),
-                      // Status Bar + iPhone 13 Notch Overlay
+                      // Status Bar iPhone 13 dengan kontras pintar (Gelap saat di halaman terang, Putih saat di header hijau login)
                       Positioned(
                         top: 0,
                         left: 0,
                         right: 0,
                         child: IgnorePointer(
-                          child: _buildIPhone13StatusBar(),
+                          child: _buildIPhone13StatusBar(
+                            useDarkIcons: isAuthenticated,
+                          ),
                         ),
                       ),
-                      // Bottom Home Indicator Bar
                       Positioned(
                         bottom: 6,
                         left: 0,
@@ -299,7 +337,9 @@ class IPhone13FrameWrapper extends StatelessWidget {
     );
   }
 
-  Widget _buildIPhone13StatusBar() {
+  Widget _buildIPhone13StatusBar({required bool useDarkIcons}) {
+    final fgColor = useDarkIcons ? const Color(0xFF1E242B) : Colors.white;
+
     return SizedBox(
       height: 32,
       child: Stack(
@@ -310,35 +350,32 @@ class IPhone13FrameWrapper extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  '11:11',
+                Text(
+                  '19:44',
                   style: TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w800,
-                    color: Color(0xCCFFFFFF),
-                    shadows: [
-                      Shadow(color: Colors.black54, blurRadius: 3),
-                    ],
+                    color: fgColor,
                   ),
                 ),
                 Row(
-                  children: const [
+                  children: [
                     Icon(
                       Icons.signal_cellular_alt_rounded,
                       size: 14,
-                      color: Color(0xCCFFFFFF),
+                      color: fgColor,
                     ),
-                    SizedBox(width: 4),
+                    const SizedBox(width: 4),
                     Icon(
                       Icons.wifi_rounded,
                       size: 14,
-                      color: Color(0xCCFFFFFF),
+                      color: fgColor,
                     ),
-                    SizedBox(width: 4),
+                    const SizedBox(width: 4),
                     Icon(
                       Icons.battery_full_rounded,
                       size: 15,
-                      color: Color(0xCCFFFFFF),
+                      color: fgColor,
                     ),
                   ],
                 ),
@@ -384,4 +421,3 @@ class IPhone13FrameWrapper extends StatelessWidget {
     );
   }
 }
-

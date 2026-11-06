@@ -146,7 +146,6 @@ class ProductCatalogScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  // Menu Sorting Harga & Nama
                   PopupMenuButton<ProductSortOption>(
                     onSelected: productProvider.setSortOption,
                     itemBuilder: (_) => const [
@@ -258,7 +257,7 @@ class ProductCatalogScreen extends StatelessWidget {
 
             const SizedBox(height: 10),
 
-            // Grid Produk Responsive
+            // Grid Produk Responsive dengan Animasi Staggered
             Expanded(
               child: products.isEmpty
                   ? const Center(
@@ -275,17 +274,34 @@ class ProductCatalogScreen extends StatelessWidget {
                         maxCrossAxisExtent: 220,
                         mainAxisSpacing: 12,
                         crossAxisSpacing: 12,
-                        childAspectRatio: 0.76,
+                        childAspectRatio: 0.75,
                       ),
                       itemCount: products.length,
                       itemBuilder: (context, index) {
                         final prod = products[index];
-                        return ProductCard(
-                          product: prod,
-                          onTapDetail: () =>
-                              _openDetail(context, prod),
-                          onTapAddToCart: () =>
-                              _openQuickAdd(context, prod),
+                        return TweenAnimationBuilder<double>(
+                          key: ValueKey(
+                            'cat_grid_${prod.id}_${productProvider.selectedCategoryId}_${productProvider.stockFilter.name}',
+                          ),
+                          tween: Tween(begin: 0.0, end: 1.0),
+                          duration: Duration(
+                            milliseconds: 240 + (index * 45).clamp(0, 240),
+                          ),
+                          curve: Curves.easeOutCubic,
+                          builder: (context, value, child) {
+                            return Opacity(
+                              opacity: value,
+                              child: Transform.translate(
+                                offset: Offset(0, (1 - value) * 18),
+                                child: child,
+                              ),
+                            );
+                          },
+                          child: ProductCard(
+                            product: prod,
+                            onTapDetail: () => _openDetail(context, prod),
+                            onTapAddToCart: () => _openQuickAdd(context, prod),
+                          ),
                         );
                       },
                     ),
@@ -299,8 +315,12 @@ class ProductCatalogScreen extends StatelessWidget {
   void _openDetail(BuildContext context, ProductModel product) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => ProductDetailSwipeScreen(initialProduct: product),
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 360),
+        pageBuilder: (_, animation, __) => FadeTransition(
+          opacity: animation,
+          child: ProductDetailSwipeScreen(initialProduct: product),
+        ),
       ),
     );
   }
@@ -323,7 +343,8 @@ class ProductCatalogScreen extends StatelessWidget {
       padding: const EdgeInsets.only(right: 8),
       child: GestureDetector(
         onTap: onTap,
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 6),
           decoration: BoxDecoration(
             color: selected ? AppColors.posOrange : Colors.white,
@@ -354,7 +375,8 @@ class ProductCatalogScreen extends StatelessWidget {
       padding: const EdgeInsets.only(right: 6),
       child: GestureDetector(
         onTap: onTap,
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
             color: selected
@@ -382,4 +404,3 @@ class ProductCatalogScreen extends StatelessWidget {
     );
   }
 }
-
