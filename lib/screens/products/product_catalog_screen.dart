@@ -382,3 +382,4 @@ class ProductCatalogScreen extends StatelessWidget {
     );
   }
 }
+

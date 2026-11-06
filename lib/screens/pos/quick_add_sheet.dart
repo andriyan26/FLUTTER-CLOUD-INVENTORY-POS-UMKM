@@ -380,3 +380,4 @@ class _QuickAddProductSheetState extends State<QuickAddProductSheet> {
     );
   }
 }
+

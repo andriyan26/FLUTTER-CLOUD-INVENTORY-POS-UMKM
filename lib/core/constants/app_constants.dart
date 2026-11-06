@@ -18,3 +18,4 @@ class AppConstants {
   // Storage Bucket Supabase
   static const String productImagesBucket = 'product-images';
 }
+

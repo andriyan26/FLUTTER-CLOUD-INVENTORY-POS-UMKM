@@ -706,3 +706,4 @@ class _ProductDetailSwipeScreenState extends State<ProductDetailSwipeScreen> {
     );
   }
 }
+

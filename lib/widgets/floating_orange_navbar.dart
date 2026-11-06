@@ -130,3 +130,4 @@ class _NavItemData {
 
   const _NavItemData({required this.icon, required this.label});
 }
+

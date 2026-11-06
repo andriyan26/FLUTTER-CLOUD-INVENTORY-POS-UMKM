@@ -89,3 +89,4 @@ class ReportService {
     return buffer.toString();
   }
 }
+

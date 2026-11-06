@@ -140,3 +140,4 @@ Apabila `SUPABASE_URL` belum diisi, aplikasi otomatis berjalan dalam **Smart Clo
   Sesuai aturan integritas data, kategori yang masih memiliki produk aktif tidak dapat dihapus sebelum produk di dalamnya dipindahkan atau dihapus.
 - **Checkout gagal karena stok kurang?**
   Sistem memvalidasi stok baik di sisi Flutter maupun secara atomik di database (`FOR UPDATE` row lock pada PostgreSQL) untuk mencegah stok negatif.
+

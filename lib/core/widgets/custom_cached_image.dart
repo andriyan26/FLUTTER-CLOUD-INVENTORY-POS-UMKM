@@ -102,3 +102,4 @@ class CustomProductImage extends StatelessWidget {
     );
   }
 }
+

@@ -293,3 +293,4 @@ CREATE POLICY "Public read access for product images"
 CREATE POLICY "Authenticated admin upload product images"
   ON storage.objects FOR INSERT TO authenticated
   WITH CHECK (bucket_id = 'product-images');
+

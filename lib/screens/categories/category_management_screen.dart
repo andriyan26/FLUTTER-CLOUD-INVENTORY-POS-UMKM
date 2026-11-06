@@ -202,3 +202,4 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
     );
   }
 }
+

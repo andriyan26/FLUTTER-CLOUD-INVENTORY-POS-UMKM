@@ -138,3 +138,4 @@ class CategoryService {
     _demoCategories.removeWhere((c) => c.id == id);
   }
 }
+

@@ -238,3 +238,4 @@ class ReceiptDialog extends StatelessWidget {
     );
   }
 }
+

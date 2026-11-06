@@ -88,3 +88,4 @@ class CategoryProvider extends ChangeNotifier {
     }
   }
 }
+

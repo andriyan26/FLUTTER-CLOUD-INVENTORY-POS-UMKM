@@ -32,3 +32,4 @@ coverage/
 
 # Reference Videos (kept locally, excluded from Git push to keep repo fast & lightweight)
 *.mp4
+

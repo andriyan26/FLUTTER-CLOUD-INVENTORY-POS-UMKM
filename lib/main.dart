@@ -46,3 +46,4 @@ class CloudInventoryPosApp extends StatelessWidget {
     );
   }
 }
+

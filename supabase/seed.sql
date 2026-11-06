@@ -125,3 +125,4 @@ INSERT INTO public.products (sku, name, category_id, price, stock, description, 
     ]
   )
 ON CONFLICT (sku) DO NOTHING;
+

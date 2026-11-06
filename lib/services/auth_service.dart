@@ -151,3 +151,4 @@ class AuthService {
     _demoSessionUser = null;
   }
 }
+
