@@ -752,3 +752,4 @@ class _MiniStreetScooterAndWalkersPainter extends CustomPainter {
   ) =>
       oldDelegate.phase != phase;
 }
+

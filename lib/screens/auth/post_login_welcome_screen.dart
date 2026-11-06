@@ -598,7 +598,7 @@ class _GoldenHourStreetAndScooterPainter extends CustomPainter {
 
     final legSwing = math.sin(stridePhase) * 10.0;
     final armSwing = -math.sin(stridePhase) * 9.0;
-    final bobY = math.abs(math.cos(stridePhase)) * -2.5;
+    final bobY = math.cos(stridePhase).abs() * -2.5;
 
     // Bayangan panjang golden-hour di trotoar
     final shadowPaint = Paint()
