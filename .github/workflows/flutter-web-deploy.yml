@@ -31,9 +31,10 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
-      - name: Build Flutter Web for GitHub Pages
+      - name: Build Flutter Web for GitHub Pages (No Stale SW Cache)
         run: |
           flutter build web --release \
+            --pwa-strategy=none \
             --base-href "/${{ github.event.repository.name }}/" \
             "--dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }}" \
             "--dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}"

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/currency_formatter.dart';
+import '../../core/widgets/smooth_staggered_reveal.dart';
 import '../../models/transaction_model.dart';
 import '../../providers/transaction_provider.dart';
 import '../pos/receipt_dialog.dart';
@@ -16,7 +17,7 @@ class TransactionHistoryScreen extends StatefulWidget {
 
 class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   String _searchQuery = '';
-  String _dateFilter = 'Semua'; // 'Semua', 'Hari Ini', '7 Hari', 'Bulan Ini'
+  String _dateFilter = 'Semua';
 
   List<TransactionModel> _applyFilters(List<TransactionModel> all) {
     final now = DateTime.now();
@@ -56,100 +57,109 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(18, 12, 18, 8),
-              child: Text(
-                'Riwayat Transaksi',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.textDarkSlate,
+            const SmoothStaggeredReveal(
+              index: 0,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(18, 12, 18, 8),
+                child: Text(
+                  'Riwayat Transaksi',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.textDarkSlate,
+                  ),
                 ),
               ),
             ),
 
-            // Search Bar Nomor Transaksi / Pelanggan
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18),
-              child: Container(
-                height: 42,
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: AppColors.borderLight),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.search_rounded,
-                      size: 18,
-                      color: AppColors.textMuted,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextField(
-                        onChanged: (val) => setState(() => _searchQuery = val),
-                        style: const TextStyle(fontSize: 13),
-                        decoration: const InputDecoration(
-                          hintText:
-                              'Cari nomor transaksi (INV-...) atau pelanggan...',
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
+            SmoothStaggeredReveal(
+              index: 1,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 18),
+                child: Container(
+                  height: 42,
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: AppColors.borderLight),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.search_rounded,
+                        size: 18,
+                        color: AppColors.textMuted,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextField(
+                          onChanged: (val) =>
+                              setState(() => _searchQuery = val),
+                          style: const TextStyle(fontSize: 13),
+                          decoration: const InputDecoration(
+                            hintText:
+                                'Cari nomor transaksi (INV-...) atau pelanggan...',
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            isDense: true,
+                            contentPadding: EdgeInsets.zero,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
 
             const SizedBox(height: 10),
 
-            // Filter Tanggal
-            SizedBox(
-              height: 32,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                children: ['Semua', 'Hari Ini', '7 Hari', 'Bulan Ini']
-                    .map((period) {
-                  final active = _dateFilter == period;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: GestureDetector(
-                      onTap: () => setState(() => _dateFilter = period),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: active ? AppColors.posOrange : Colors.white,
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(
-                            color: active
-                                ? AppColors.posOrange
-                                : AppColors.borderLight,
+            SmoothStaggeredReveal(
+              index: 2,
+              child: SizedBox(
+                height: 32,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  children: ['Semua', 'Hari Ini', '7 Hari', 'Bulan Ini']
+                      .map((period) {
+                    final active = _dateFilter == period;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: GestureDetector(
+                        onTap: () => setState(() => _dateFilter = period),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 220),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
                           ),
-                        ),
-                        child: Text(
-                          period,
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w700,
-                            color: active
-                                ? Colors.white
-                                : AppColors.textDarkSlate,
+                          decoration: BoxDecoration(
+                            color: active ? AppColors.posOrange : Colors.white,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(
+                              color: active
+                                  ? AppColors.posOrange
+                                  : AppColors.borderLight,
+                            ),
+                          ),
+                          child: Text(
+                            period,
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w700,
+                              color: active
+                                  ? Colors.white
+                                  : AppColors.textDarkSlate,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  );
-                }).toList(),
+                    );
+                  }).toList(),
+                ),
               ),
             ),
 
@@ -170,105 +180,118 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                       separatorBuilder: (_, __) => const SizedBox(height: 10),
                       itemBuilder: (context, index) {
                         final tx = filtered[index];
-                        return InkWell(
-                          onTap: () {
-                            showDialog(
-                              context: context,
-                              builder: (_) => ReceiptDialog(transaction: tx),
-                            );
-                          },
-                          borderRadius: BorderRadius.circular(20),
-                          child: Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: AppColors.borderLight),
-                            ),
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      tx.transactionCode,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w900,
-                                        fontSize: 13.5,
-                                        color: AppColors.textDarkSlate,
-                                      ),
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 3,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.loginSoftMint,
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Text(
-                                        'LUNAS • ${tx.paymentMethod}',
+                        return SmoothStaggeredReveal(
+                          key: ValueKey('tx_${tx.id}_$_dateFilter'),
+                          index: index + 2,
+                          child: InkWell(
+                            onTap: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => ReceiptDialog(transaction: tx),
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(20),
+                            child: Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                border:
+                                    Border.all(color: AppColors.borderLight),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(0x060F172A),
+                                    blurRadius: 12,
+                                    offset: Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        tx.transactionCode,
                                         style: const TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w800,
-                                          color: AppColors.loginPrimaryGreen,
+                                          fontWeight: FontWeight.w900,
+                                          fontSize: 13.5,
+                                          color: AppColors.textDarkSlate,
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 6),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          tx.customerName,
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 3,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.loginSoftMint,
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                        child: Text(
+                                          'LUNAS • ${tx.paymentMethod}',
                                           style: const TextStyle(
-                                            fontSize: 12.5,
-                                            fontWeight: FontWeight.w700,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w800,
+                                            color: AppColors.loginPrimaryGreen,
                                           ),
                                         ),
-                                        Text(
-                                          CurrencyFormatter.formatDateTime(
-                                            tx.createdAt,
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            tx.customerName,
+                                            style: const TextStyle(
+                                              fontSize: 12.5,
+                                              fontWeight: FontWeight.w700,
+                                            ),
                                           ),
-                                          style: const TextStyle(
-                                            fontSize: 11,
+                                          Text(
+                                            CurrencyFormatter.formatDateTime(
+                                              tx.createdAt,
+                                            ),
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              color: AppColors.textMuted,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          Text(
+                                            CurrencyFormatter.formatRupiah(
+                                              tx.total,
+                                            ),
+                                            style: const TextStyle(
+                                              fontSize: 14.5,
+                                              fontWeight: FontWeight.w900,
+                                              color: AppColors.posOrange,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          const Icon(
+                                            Icons.print_outlined,
+                                            size: 18,
                                             color: AppColors.textMuted,
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                    Row(
-                                      children: [
-                                        Text(
-                                          CurrencyFormatter.formatRupiah(
-                                            tx.total,
-                                          ),
-                                          style: const TextStyle(
-                                            fontSize: 14.5,
-                                            fontWeight: FontWeight.w900,
-                                            color: AppColors.posOrange,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 6),
-                                        const Icon(
-                                          Icons.print_outlined,
-                                          size: 18,
-                                          color: AppColors.textMuted,
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         );
@@ -281,4 +304,3 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     );
   }
 }
-

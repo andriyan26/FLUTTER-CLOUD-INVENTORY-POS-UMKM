@@ -4,6 +4,7 @@ import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/currency_formatter.dart';
 import '../../core/widgets/custom_cached_image.dart';
+import '../../core/widgets/smooth_staggered_reveal.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/product_provider.dart';
@@ -125,7 +126,6 @@ class _PosScreenState extends State<PosScreen> {
           );
         }
 
-        // Smartphone / iPhone 13 Responsive POS Layout
         final cart = context.watch<CartProvider>();
         return Scaffold(
           backgroundColor: const Color(0xFFFAF9F6),
@@ -133,45 +133,48 @@ class _PosScreenState extends State<PosScreen> {
             bottom: false,
             child: Column(
               children: [
-                // Sub-Header Toggle Katalog Kasir vs Keranjang Belanja
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 10, 18, 6),
-                  child: Row(
-                    children: [
-                      const Expanded(
-                        child: Text(
-                          'Kasir / POS UMKM',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.textDarkSlate,
+                SmoothStaggeredReveal(
+                  index: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(18, 10, 18, 6),
+                    child: Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Kasir / POS UMKM',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.textDarkSlate,
+                            ),
                           ),
                         ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.all(3),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE2E8F0),
-                          borderRadius: BorderRadius.circular(20),
+                        Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE2E8F0),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            children: [
+                              _buildMobileViewToggle(
+                                label: 'Produk',
+                                active: !_showMobileCartView,
+                                onTap: () => setState(
+                                  () => _showMobileCartView = false,
+                                ),
+                              ),
+                              _buildMobileViewToggle(
+                                label: 'Keranjang (${cart.totalItemsCount})',
+                                active: _showMobileCartView,
+                                onTap: () =>
+                                    setState(() => _showMobileCartView = true),
+                              ),
+                            ],
+                          ),
                         ),
-                        child: Row(
-                          children: [
-                            _buildMobileViewToggle(
-                              label: 'Produk',
-                              active: !_showMobileCartView,
-                              onTap: () =>
-                                  setState(() => _showMobileCartView = false),
-                            ),
-                            _buildMobileViewToggle(
-                              label: 'Keranjang (${cart.totalItemsCount})',
-                              active: _showMobileCartView,
-                              onTap: () =>
-                                  setState(() => _showMobileCartView = true),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
                 Expanded(
@@ -312,50 +315,56 @@ class _PosScreenState extends State<PosScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (!hideHeader)
-          const Padding(
-            padding: EdgeInsets.fromLTRB(18, 14, 18, 6),
-            child: Text(
-              'Pilih Produk Kasir (POS)',
-              style: TextStyle(
-                fontSize: 19,
-                fontWeight: FontWeight.w900,
-                color: AppColors.textDarkSlate,
+          const SmoothStaggeredReveal(
+            index: 0,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(18, 14, 18, 6),
+              child: Text(
+                'Pilih Produk Kasir (POS)',
+                style: TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.textDarkSlate,
+                ),
               ),
             ),
           ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
-          child: Container(
-            height: 42,
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: AppColors.borderLight),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.search_rounded,
-                  size: 18,
-                  color: AppColors.textMuted,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    onChanged: productProvider.setSearchQuery,
-                    style: const TextStyle(fontSize: 13),
-                    decoration: const InputDecoration(
-                      hintText: 'Cari produk atau scan SKU...',
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
+        SmoothStaggeredReveal(
+          index: 1,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+            child: Container(
+              height: 42,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: AppColors.borderLight),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.search_rounded,
+                    size: 18,
+                    color: AppColors.textMuted,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      onChanged: productProvider.setSearchQuery,
+                      style: const TextStyle(fontSize: 13),
+                      decoration: const InputDecoration(
+                        hintText: 'Cari produk atau scan SKU...',
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -367,38 +376,42 @@ class _PosScreenState extends State<PosScreen> {
               maxCrossAxisExtent: 210,
               mainAxisSpacing: 12,
               crossAxisSpacing: 12,
-              childAspectRatio: 0.76,
+              childAspectRatio: 0.75,
             ),
             itemCount: products.length,
             itemBuilder: (context, index) {
               final prod = products[index];
-              return ProductCard(
-                product: prod,
-                onTapDetail: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          ProductDetailSwipeScreen(initialProduct: prod),
-                    ),
-                  );
-                },
-                onTapAddToCart: () {
-                  final err = cartProvider.addToCart(prod);
-                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      duration: const Duration(milliseconds: 1100),
-                      behavior: SnackBarBehavior.floating,
-                      backgroundColor: err != null
-                          ? AppColors.errorRed
-                          : AppColors.loginPrimaryGreen,
-                      content: Text(
-                        err ?? '+1 ${prod.name} masuk keranjang kasir',
+              return SmoothStaggeredReveal(
+                key: ValueKey('pos_card_${prod.id}'),
+                index: index + 2,
+                child: ProductCard(
+                  product: prod,
+                  onTapDetail: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            ProductDetailSwipeScreen(initialProduct: prod),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                  onTapAddToCart: () {
+                    final err = cartProvider.addToCart(prod);
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        duration: const Duration(milliseconds: 1100),
+                        behavior: SnackBarBehavior.floating,
+                        backgroundColor: err != null
+                            ? AppColors.errorRed
+                            : AppColors.loginPrimaryGreen,
+                        content: Text(
+                          err ?? '+1 ${prod.name} masuk keranjang kasir',
+                        ),
+                      ),
+                    );
+                  },
+                ),
               );
             },
           ),
@@ -418,7 +431,6 @@ class _PosScreenState extends State<PosScreen> {
       color: Colors.white,
       child: Column(
         children: [
-          // Header Keranjang
           Padding(
             padding: const EdgeInsets.fromLTRB(18, 10, 18, 6),
             child: Row(
@@ -449,7 +461,6 @@ class _PosScreenState extends State<PosScreen> {
           ),
           const Divider(height: 1),
 
-          // Daftar Item Keranjang
           Expanded(
             child: cart.isEmpty
                 ? const Center(
@@ -478,108 +489,110 @@ class _PosScreenState extends State<PosScreen> {
                     separatorBuilder: (_, __) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
                       final item = cart.items[index];
-                      return Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: AppColors.backgroundLight,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Row(
-                          children: [
-                            CustomProductImage(
-                              imageUrl: item.product.primaryImage,
-                              width: 48,
-                              height: 48,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                      return SmoothStaggeredReveal(
+                        index: index,
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: AppColors.backgroundLight,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
+                            children: [
+                              CustomProductImage(
+                                imageUrl: item.product.primaryImage,
+                                width: 48,
+                                height: 48,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      item.product.name,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    Text(
+                                      '${item.selectedVariant} • ${CurrencyFormatter.formatRupiah(item.unitPrice)}',
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        color: AppColors.textMuted,
+                                      ),
+                                    ),
+                                    Text(
+                                      CurrencyFormatter.formatRupiah(
+                                        item.subtotal,
+                                      ),
+                                      style: const TextStyle(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w900,
+                                        color: AppColors.posOrange,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Row(
                                 children: [
-                                  Text(
-                                    item.product.name,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 13,
+                                  _buildQtyBtn(
+                                    icon: Icons.remove_rounded,
+                                    onTap: () => cart.decrementQuantity(index),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                    ),
+                                    child: Text(
+                                      '${item.quantity}',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 13.5,
+                                      ),
                                     ),
                                   ),
-                                  Text(
-                                    '${item.selectedVariant} • ${CurrencyFormatter.formatRupiah(item.unitPrice)}',
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.textMuted,
-                                    ),
+                                  _buildQtyBtn(
+                                    icon: Icons.add_rounded,
+                                    isOrange: true,
+                                    onTap: () {
+                                      final err = cart.incrementQuantity(index);
+                                      if (err != null) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(err),
+                                            backgroundColor: AppColors.errorRed,
+                                          ),
+                                        );
+                                      }
+                                    },
                                   ),
-                                  Text(
-                                    CurrencyFormatter.formatRupiah(
-                                      item.subtotal,
-                                    ),
-                                    style: const TextStyle(
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w900,
-                                      color: AppColors.posOrange,
+                                  const SizedBox(width: 4),
+                                  IconButton(
+                                    visualDensity: VisualDensity.compact,
+                                    onPressed: () => cart.removeItem(index),
+                                    icon: const Icon(
+                                      Icons.delete_outline_rounded,
+                                      size: 18,
+                                      color: AppColors.errorRed,
                                     ),
                                   ),
                                 ],
                               ),
-                            ),
-                            Row(
-                              children: [
-                                _buildQtyBtn(
-                                  icon: Icons.remove_rounded,
-                                  onTap: () => cart.decrementQuantity(index),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                  ),
-                                  child: Text(
-                                    '${item.quantity}',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 13.5,
-                                    ),
-                                  ),
-                                ),
-                                _buildQtyBtn(
-                                  icon: Icons.add_rounded,
-                                  isOrange: true,
-                                  onTap: () {
-                                    final err = cart.incrementQuantity(index);
-                                    if (err != null) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(err),
-                                          backgroundColor: AppColors.errorRed,
-                                        ),
-                                      );
-                                    }
-                                  },
-                                ),
-                                const SizedBox(width: 4),
-                                IconButton(
-                                  visualDensity: VisualDensity.compact,
-                                  onPressed: () => cart.removeItem(index),
-                                  icon: const Icon(
-                                    Icons.delete_outline_rounded,
-                                    size: 18,
-                                    color: AppColors.errorRed,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       );
                     },
                   ),
           ),
 
-          // Form Checkout & Pembayaran (Persis "Commander" di Video 2 detik 00:15)
           Container(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 92),
             decoration: const BoxDecoration(
@@ -589,7 +602,6 @@ class _PosScreenState extends State<PosScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Nama Pelanggan & Metode Pembayaran
                 Row(
                   children: [
                     Expanded(
@@ -720,15 +732,13 @@ class _PosScreenState extends State<PosScreen> {
                   ),
                 const SizedBox(height: 10),
 
-                // Tombol Kapsul Oranye "Commander / Bayar Sekarang" (Persis Video 2 detik 00:15)
                 SizedBox(
                   width: double.infinity,
                   height: 48,
                   child: ElevatedButton.icon(
-                    onPressed:
-                        (cart.isEmpty || txProvider.isLoading)
-                            ? null
-                            : _handleCheckout,
+                    onPressed: (cart.isEmpty || txProvider.isLoading)
+                        ? null
+                        : _handleCheckout,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.posOrange,
                       foregroundColor: Colors.white,
@@ -807,4 +817,3 @@ class _PosScreenState extends State<PosScreen> {
     );
   }
 }
-

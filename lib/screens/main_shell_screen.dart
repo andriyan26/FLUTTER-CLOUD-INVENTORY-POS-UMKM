@@ -36,9 +36,31 @@ class _MainShellScreenState extends State<MainShellScreen> {
   }
 
   void _onSelectTab(int index) {
+    if (_selectedIndex == index) return;
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  Widget _buildActivePage() {
+    switch (_selectedIndex) {
+      case 0:
+        return DashboardScreen(
+          key: const ValueKey('page_dashboard'),
+          onSwitchTab: _onSelectTab,
+        );
+      case 1:
+        return const ProductCatalogScreen(key: ValueKey('page_catalog'));
+      case 2:
+        return const PosScreen(key: ValueKey('page_pos'));
+      case 3:
+        return const TransactionHistoryScreen(key: ValueKey('page_history'));
+      case 4:
+        return const SalesReportScreen(key: ValueKey('page_reports'));
+      case 5:
+      default:
+        return const SettingsScreen(key: ValueKey('page_settings'));
+    }
   }
 
   @override
@@ -46,20 +68,27 @@ class _MainShellScreenState extends State<MainShellScreen> {
     final cartCount = context.watch<CartProvider>().totalItemsCount;
     final user = context.watch<AuthProvider>().currentUser;
 
-    final List<Widget> pages = [
-      DashboardScreen(onSwitchTab: _onSelectTab),
-      const ProductCatalogScreen(),
-      const PosScreen(),
-      const TransactionHistoryScreen(),
-      const SalesReportScreen(),
-      const SettingsScreen(),
-    ];
+    final animatedPage = AnimatedSwitcher(
+      duration: const Duration(milliseconds: 420),
+      switchInCurve: Curves.easeOutQuart,
+      switchOutCurve: Curves.easeInCubic,
+      transitionBuilder: (child, animation) {
+        final slide = Tween<Offset>(
+          begin: const Offset(0.0, 0.04),
+          end: Offset.zero,
+        ).animate(animation);
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(position: slide, child: child),
+        );
+      },
+      child: _buildActivePage(),
+    );
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWideScreen = constraints.maxWidth >= 720;
 
-        // Desktop & Tablet Responsive Sidebar Layout
         if (isWideScreen) {
           final isDesktopFull = constraints.maxWidth >= 980;
           return Scaffold(
@@ -223,28 +252,18 @@ class _MainShellScreenState extends State<MainShellScreen> {
                     ],
                   ),
                 ),
-                Expanded(
-                  child: IndexedStack(
-                    index: _selectedIndex,
-                    children: pages,
-                  ),
-                ),
+                Expanded(child: animatedPage),
               ],
             ),
           );
         }
 
-        // iPhone 13 & Smartphone Layout dengan Floating Orange Pill Navbar (Persis Video 2)
+        // iPhone 13 & Smartphone Layout
         return Scaffold(
           backgroundColor: const Color(0xFFFAF9F6),
           body: Stack(
             children: [
-              Positioned.fill(
-                child: IndexedStack(
-                  index: _selectedIndex,
-                  children: pages,
-                ),
-              ),
+              Positioned.fill(child: animatedPage),
               Positioned(
                 left: 0,
                 right: 0,
@@ -330,4 +349,3 @@ class _MainShellScreenState extends State<MainShellScreen> {
     );
   }
 }
-
